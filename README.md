@@ -1,12 +1,8 @@
 # README #
 
-A collection of arcpy related utilities for use within ArcGIS (ArcCatalog/ArcMap).
 
 ### What is this repository for? ###
-
-* Quick summary
-* Version
-* [Learn Markdown](https://bitbucket.org/tutorials/markdowndemo)
+* A collection of arcpy related utilities for use within ArcGIS (ArcCatalog/ArcMap).
 
 ### How do I get set up? ###
 
