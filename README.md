@@ -6,7 +6,10 @@
 
 ### How do I get set up? ###
 
-* Using the utilities: Clone to your machine, add the path to the python install https://docs.python.org/2/tutorial/modules.html#the-module-search-path or copy the folder to the site-packages in the ESRIO python install
+* To use the utilities: 
+* Clone the repo to your machine and add the path to the python install https://docs.python.org/2/tutorial/modules.html#the-module-search-path
+* optionally, you can copy the folder to the site-packages in the ESRI python install directory
+* import the modules
 * Dependencies: arcpy
 
 ### Contribution guidelines ###
