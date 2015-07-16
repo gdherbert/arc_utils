@@ -3,6 +3,8 @@
 
 
 def output_msg(msg, severity=0):
+    """Outputs to print or to Arc. Useful to include in a tool
+    that can be run in Python or in ArcGIS """
     # Adds a Message (in case this is run as a tool)
     # and also prints the message to the screen (standard output)
     #
