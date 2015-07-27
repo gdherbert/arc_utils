@@ -6,8 +6,6 @@ def get_field_value_set(inputTable, field, charset='ascii'):
        a field name string and an optional charset (default='ascii')
        ascii charset will force encoding with ignore option
         Returns a set"""
-    import arcpy
-
     try:
         valueSet = set() # set to hold unique values
         # use data access search cursor combined with, 'with'
@@ -37,8 +35,6 @@ def get_field_value_set(inputTable, field, charset='ascii'):
 
 def pprint_fields(table):
     """ pretty print table's fields and their properties """
-    import arcpy
-
     def _print(l):
         print("".join(["{:>12}".format(i) for i in l]))
 
@@ -53,14 +49,10 @@ def pprint_fields(table):
 
 def gdb_report_fcs(gdb):
     """output a report of all fields in all featureclasses from a geodatabase
-    to the geodatabase directory or user folder
+    to the geodtaabse directory or user folder
     FeatureDataset, FeatureClass, FieldName, FieldAlias, BaseName, DefaultValue,
     FieldType,Required,Editable,isNullable, FieldLength, FieldPrecision,
     FieldScale, FieldDomain"""
-    import arcpy
-    import datetime
-    import os
-
     startTime = datetime.datetime.today()
     startDateString = startTime.strftime('%Y%m%d')
     try:
@@ -111,9 +103,6 @@ def gdb_report_fcs(gdb):
 def gdb_export_domains(gdb):
     """output all the domains in a geodatabase
     to dbf files to the geodatabase directory or user folder"""
-    import arcpy
-    import os
-
     try:
         default_env = arcpy.env.workspace
         desc = arcpy.Describe(gdb)
