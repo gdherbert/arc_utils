@@ -87,14 +87,12 @@ def field_report(fc):
             try:
                 fields = arcpy.ListFields(fc)
                 for field in fields:
-                    print "{0}\n".format(field.name)
                     logFile.write("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11}\n".format(
                          field.name, field.aliasName, field.baseName,
                          field.defaultValue, field.type, field.required,
                          field.editable, field.isNullable, field.length,
                          field.precision, field.scale, field.domain))
             except:
-                print "error"
                 print arcpy.GetMessages()
 
     except:
