@@ -3,10 +3,20 @@ __AUTHOR__ = 'Grant Herbert'
 import arcpy
 
 def get_field_value_set(inputTable, field, charset='ascii'):
-    """Get a list of unique field values given an input table,
+    """Returns a set of unique field values given an input table,
        a field name string and an optional charset (default='ascii')
-       ascii charset will force encoding with ignore option
-        Returns a set"""
+       ascii charset will force encoding with ignore option.
+
+        inputTable{String}:
+            Path or reference to feature class or table.
+
+        field{String}:
+            name of the field to parse
+
+        charset{String}:
+            character set to use (default = 'ascii').
+            Valid values are those in the Python documentation for string encode.
+       """
 
     try:
         valueSet = set() # set to hold unique values
@@ -36,7 +46,7 @@ def get_field_value_set(inputTable, field, charset='ascii'):
 
 
 def pprint_fields(table):
-    """ pretty print table's fields and their properties """
+    """ pretty print a table's fields and their properties """
 
     def _print(l):
         print("".join(["{:>12}".format(i) for i in l]))
@@ -51,18 +61,20 @@ def pprint_fields(table):
 
 
 
-def field_report(fc):
-    """output a report of all fields in a featureclasse,
-    to the geodatabase directory or user folder
-    FeatureDataset, FeatureClass, FieldName, FieldAlias, BaseName, DefaultValue,
-    FieldType,Required,Editable,isNullable, FieldLength, FieldPrecision,
-    FieldScale, FieldDomain"""
+def field_report(featureclass):
+    """Create a csv report of all fields in a featureclass,
+    to the base directory or user folder.
+
+    featureclass{String}:
+        path or reference to a featureclass.
+    """
     import datetime
     import os
 
     startTime = datetime.datetime.today()
     startDateString = startTime.strftime('%Y%m%d')
     default_env = arcpy.env.workspace
+    fc = featureclass
 
     try:
         print fc
@@ -80,7 +92,7 @@ def field_report(fc):
         print "Report file: {0}".format(logFilePath)
         with open(logFilePath, "w") as logFile:
             logFile.write("{0}\n".format(desc.name))
-            logFile.write("Dataset,FeatureClass,FieldName,FieldAlias,BaseName,")
+            logFile.write("FieldName,FieldAlias,BaseName,")
             logFile.write("DefaultValue,FieldType,Required,Editable,isNullable,")
             logFile.write("FieldLength,FieldPrecision,FieldScale,FieldDomain\n")
 

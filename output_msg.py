@@ -4,8 +4,17 @@
 import arcpy
 
 def output_msg(msg, severity=0):
-    """Outputs to print or to Arc. Useful to include in a tool
-    that can be run in Python or in ArcGIS """
+    """Outputs to print and/or to Arc. Useful to include in a tool
+    that can be run in Python or in ArcGIS
+
+    msg{String}:
+        message to output.
+
+    severity(integer):
+        severity = 0 (none), 1 (warning), 2 (error)
+    usage:
+        output_msg("message")
+    """
 
     # Adds a Message (in case this is run as a tool)
     # and also prints the message to the screen (standard output)
