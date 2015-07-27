@@ -80,15 +80,15 @@ def field_report(fc):
         print "Report file: {0}".format(logFilePath)
         with open(logFilePath, "w") as logFile:
             logFile.write("{0}\n".format(desc.name))
-            logFile.write("Dataset,FeatureClass,FieldName,FieldAlias,BaseName,")
-            logFile.write("DefaultValue,FieldType,Required,Editable,isNullable,")
-            logFile.write("FieldLength,FieldPrecision,FieldScale,FieldDomain\n")
-
+            logFile.write("FieldName,FieldAlias,BaseName,",
+                            "DefaultValue,FieldType,Required,Editable,isNullable,",
+                            "FieldLength,FieldPrecision,FieldScale,FieldDomain\n")
             try:
                 fields = arcpy.ListFields(fc)
                 for field in fields:
                     print "{0}\n".format(field.name)
-                    logFile.write("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11}\n".format(
+                    logFile.write("{0},{1},{2},{3},{4},{5},{6},{7},{8},",
+                        "{9},{10},{11}\n".format(
                          field.name, field.aliasName, field.baseName,
                          field.defaultValue, field.type, field.required,
                          field.editable, field.isNullable, field.length,
