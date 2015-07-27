@@ -93,5 +93,3 @@ def gdb_export_domains(gdb):
         arcpy.env.workspace = default_env
         print "Completed"
 
-
-gdb_report_fc_fields("X:\F0925.01 Seattle City Light\WO-7 - Mapping & Data Access\Assessor\King County\KCGIS_Parcels\KCGIS_Parcels.gdb")

@@ -32,17 +32,16 @@ def gdb_report_fc_fields(gdb):
         #write out gdb info, fields etc
         with open(logFilePath, "w") as logFile:
             logFile.write("Geodatabase: {0}\n".format(gdb))
-            logFile.write("Dataset,FeatureClass,FieldName,FieldAlias,BaseName,",
-                            "DefaultValue,FieldType,Required,Editable,isNullable,",
-                            "FieldLength,FieldPrecision,FieldScale,FieldDomain\n")
+            logFile.write("Dataset,FeatureClass,FieldName,FieldAlias,BaseName,")
+            logFile.write("DefaultValue,FieldType,Required,Editable,isNullable,")
+            logFile.write("FieldLength,FieldPrecision,FieldScale,FieldDomain\n")
             for ds in datasets:
                 for fc in arcpy.ListFeatureClasses(feature_dataset=ds):
                     print "Processing Dataset: {0} \ FeatureClass: {1}".format(ds, fc)
                     try:
                         fields = arcpy.ListFields(fc)
                         for field in fields:
-                            logFile.write("{0},{1},{2},{3},{4},{5},{6},{7},{8},",
-                                "{9},{10},{11},{12},{13}\n".format(ds, fc,
+                            logFile.write("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13}\n".format(ds, fc,
                                  field.name, field.aliasName, field.baseName,
                                  field.defaultValue, field.type, field.required,
                                  field.editable, field.isNullable, field.length,
@@ -51,7 +50,8 @@ def gdb_report_fc_fields(gdb):
                         print arcpy.GetMessages()
                         continue
 
-    except:
+    except Exception, e:
+        print str(e)
         print arcpy.GetMessages()
     finally:
         arcpy.env.workspace = default_env
@@ -92,3 +92,6 @@ def gdb_export_domains(gdb):
     finally:
         arcpy.env.workspace = default_env
         print "Completed"
+
+
+gdb_report_fc_fields("X:\F0925.01 Seattle City Light\WO-7 - Mapping & Data Access\Assessor\King County\KCGIS_Parcels\KCGIS_Parcels.gdb")
