@@ -3,8 +3,8 @@ __AUTHOR__ = 'Grant Herbert'
 import arcpy
 import os
 
-def report_fc_fields(geodatabase):
-    """Create a cvs report of all fields in all featureclasses from a geodatabase
+def report_fields(geodatabase):
+    """Create a cvs report of all fields in all featureclasses/tables from a geodatabase
     to the geodatabase directory or user folder.
 
     geodatabase{String}:
@@ -38,6 +38,20 @@ def report_fc_fields(geodatabase):
             logFile.write("Dataset,FeatureClass,FieldName,FieldAlias,BaseName,")
             logFile.write("DefaultValue,FieldType,Required,Editable,isNullable,")
             logFile.write("FieldLength,FieldPrecision,FieldScale,FieldDomain\n")
+            for tbl in arcpy.ListTables():
+                    print "Processing Table: {0}".format(tbl)
+                    try:
+                        fields = arcpy.ListFields(tbl)
+                        for field in fields:
+                            logFile.write("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13}\n".format("",tbl,
+                                 field.name, field.aliasName, field.baseName,
+                                 field.defaultValue, field.type, field.required,
+                                 field.editable, field.isNullable, field.length,
+                                 field.precision, field.scale, field.domain))
+                    except:
+                        print arcpy.GetMessages()
+                        continue
+
             for ds in datasets:
                 for fc in arcpy.ListFeatureClasses(feature_dataset=ds):
                     print "Processing Dataset: {0} \ FeatureClass: {1}".format(ds, fc)
@@ -52,6 +66,7 @@ def report_fc_fields(geodatabase):
                     except:
                         print arcpy.GetMessages()
                         continue
+
 
     except Exception, e:
         print str(e)
