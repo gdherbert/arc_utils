@@ -2,7 +2,7 @@
 
 
 ### What is this repository for? ###
-* A collection of arcpy related utilities for use within ArcGIS (ArcCatalog/ArcMap).
+* A collection of (mostly) arcpy related utilities for use within ArcGIS (ArcCatalog/ArcMap).
 
 ### How do I get set up? ###
 
@@ -15,4 +15,4 @@
 
 ### Contribution guidelines ###
 
-* Feel free to contribute, this is a starting point for utilities that I think are useful within Arc!
+* Feel free to contribute, this is a starting point for various utilities that I think could be useful within Arc.
