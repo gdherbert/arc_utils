@@ -35,9 +35,7 @@ def report_fields(geodatabase):
         #write out gdb info, fields etc
         with open(logFilePath, "w") as logFile:
             logFile.write("Geodatabase: {0}\n".format(gdb))
-            logFile.write("Dataset,FeatureClass,FieldName,FieldAlias,BaseName,")
-            logFile.write("DefaultValue,FieldType,Required,Editable,isNullable,")
-            logFile.write("FieldLength,FieldPrecision,FieldScale,FieldDomain\n")
+            logFile.write("Dataset,FeatureClass,FieldName,FieldAlias,BaseName,DefaultValue,FieldType,Required,Editable,isNullable,FieldLength,FieldPrecision,FieldScale,FieldDomain\n")
             for tbl in arcpy.ListTables():
                     print "Processing Table: {0}".format(tbl)
                     try:
