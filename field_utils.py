@@ -1,6 +1,7 @@
 __AUTHOR__ = 'Grant Herbert'
 """utilities for working with fields"""
 import arcpy
+from arc_utils.output_msg import output_msg
 
 def get_field_value_set(inputTable, field, charset='ascii'):
     """Returns a set of unique field values given an input table,
@@ -40,9 +41,9 @@ def get_field_value_set(inputTable, field, charset='ascii'):
         return valueSet
 
     except arcpy.ExecuteError:
-        print arcpy.GetMessages(2)
+        output_msg(arcpy.GetMessages(2))
     except Exception as e:
-        print e.args[0]
+        output_msg(e.args[0])
 
 
 def pprint_fields(table):
@@ -89,7 +90,7 @@ def field_report(featureclass):
 
         logFileName = desc.baseName + "_Field_Report " + startDateString + ".csv"
         logFilePath = os.path.join(reportDir, logFileName)
-        print "Report file: {0}".format(logFilePath)
+        output_msg("Report file: {0}".format(logFilePath))
         with open(logFilePath, "w") as logFile:
             logFile.write("{0}\n".format(desc.name))
             logFile.write("FieldName,FieldAlias,BaseName,")
@@ -99,16 +100,17 @@ def field_report(featureclass):
             try:
                 fields = arcpy.ListFields(fc)
                 for field in fields:
+                    output_msg("Writing {}".format(field.name))
                     logFile.write("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11}\n".format(
                          field.name, field.aliasName, field.baseName,
                          field.defaultValue, field.type, field.required,
                          field.editable, field.isNullable, field.length,
                          field.precision, field.scale, field.domain))
             except:
-                print arcpy.GetMessages()
+                output_msg(arcpy.GetMessages())
 
     except:
-        print arcpy.GetMessages()
+        output_msg(arcpy.GetMessages())
     finally:
-        print "Completed"
+        output_msg("Completed")
         arcpy.env.workspace = default_env
