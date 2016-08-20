@@ -78,11 +78,17 @@ def field_report(featureclass):
     fc = featureclass
 
     try:
-        print fc
-        desc = arcpy.Describe(fc)
+        output_msg("Processing: {}".format(fc))
+        try:
+            desc = arcpy.Describe(fc)
+        except:
+            raise ValueError("{} not found".format(fc))
         arcpy.env.workspace = fc
         if os.path.isdir(desc.Path):
-            reportDir = desc.Path
+            if desc.Path.lower().endswith(".gdb"):
+                reportDir = arcpy.Describe(desc.Path).Path
+            else:
+                reportDir = desc.Path
         else:
             reportDir = os.environ['USERPROFILE']
             if os.path.exists(reportDir + "\\Documents"):
