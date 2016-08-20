@@ -2,6 +2,7 @@ __AUTHOR__ = 'Grant Herbert'
 """utilities for working with geodatabases"""
 import arcpy
 import os
+from arc_utils.output_msg import output_msg
 
 def report_fields(geodatabase):
     """Create a cvs report of all fields in all featureclasses/tables from a geodatabase
@@ -28,7 +29,7 @@ def report_fields(geodatabase):
                 reportDir = reportDir + "\\Documents"
         logFileName = "_GDBFCReport " + startDateString + ".csv"
         logFilePath = os.path.join(reportDir, logFileName)
-        print "Report file: {0}".format(logFilePath)
+        output_msg("Report file: {0}".format(logFilePath))
         #list all datasets
         datasets = arcpy.ListDatasets(feature_type='feature')
         datasets = [''] + datasets if datasets is not None else []
@@ -37,7 +38,7 @@ def report_fields(geodatabase):
             logFile.write("Geodatabase: {0}\n".format(gdb))
             logFile.write("Dataset,FeatureClass,FieldName,FieldAlias,BaseName,DefaultValue,FieldType,Required,Editable,isNullable,FieldLength,FieldPrecision,FieldScale,FieldDomain\n")
             for tbl in arcpy.ListTables():
-                    print "Processing Table: {0}".format(tbl)
+                    output_msg("Processing Table: {0}".format(tbl))
                     try:
                         fields = arcpy.ListFields(tbl)
                         for field in fields:
@@ -47,12 +48,12 @@ def report_fields(geodatabase):
                                  field.editable, field.isNullable, field.length,
                                  field.precision, field.scale, field.domain))
                     except:
-                        print arcpy.GetMessages()
+                        output_msg(arcpy.GetMessages())
                         continue
 
             for ds in datasets:
                 for fc in arcpy.ListFeatureClasses(feature_dataset=ds):
-                    print "Processing Dataset: {0} \ FeatureClass: {1}".format(ds, fc)
+                    output_msg("Processing Dataset: {0} \ FeatureClass: {1}".format(ds, fc))
                     try:
                         fields = arcpy.ListFields(fc)
                         for field in fields:
@@ -62,16 +63,16 @@ def report_fields(geodatabase):
                                  field.editable, field.isNullable, field.length,
                                  field.precision, field.scale, field.domain))
                     except:
-                        print arcpy.GetMessages()
+                        output_msg(arcpy.GetMessages())
                         continue
 
 
     except Exception, e:
-        print str(e)
-        print arcpy.GetMessages()
+        output_msg(str(e))
+        output_msg(arcpy.GetMessages())
     finally:
         arcpy.env.workspace = default_env
-        print "Completed"
+        output_msg("Completed")
 
 
 def export_domains(geodatabase):
@@ -101,16 +102,16 @@ def export_domains(geodatabase):
                 arcpy.DomainToTable_management(gdb, domain, table,
                 'field','description', '#')
                 #export the table to dbf
-                print 'Exporting {0} domain to dbf in {1}'.format(domain, reportDir)
+                output_msg('Exporting {0} domain to dbf in {1}'.format(domain, reportDir))
                 arcpy.TableToDBASE_conversion(Input_Table=table, Output_Folder=reportDir)
                 #clean up the table
                 arcpy.Delete_management(table)
             except:
-                print arcpy.GetMessages()
+                output_msg(arcpy.GetMessages())
                 continue
     except:
-        print arcpy.GetMessages()
+        output_msg(arcpy.GetMessages())
     finally:
         arcpy.env.workspace = default_env
-        print "Completed"
+        output_msg("Completed")
 
