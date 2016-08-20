@@ -1,7 +1,7 @@
 __AUTHOR__ = 'Grant Herbert'
 """utilities for working with fields"""
 import arcpy
-from arc_utils.output_msg import output_msg
+from arcutils.outputmsg import output_msg
 
 def get_field_value_set(inputTable, field, charset='ascii'):
     """Returns a set of unique field values given an input table,
