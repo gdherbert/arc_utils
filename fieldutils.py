@@ -3,6 +3,19 @@ __AUTHOR__ = 'Grant Herbert'
 import arcpy
 from arcutils.outputmsg import output_msg
 
+def listFieldNames(inputTable):
+    """Returns an array of field names given an input table.
+
+        inputTable{String}:
+            Path or reference to feature class or table.
+    """
+    f_list = []
+    for f in arcpy.ListFields(inputTable):
+        f_list.append(f.name)
+
+    return f_list
+
+
 def get_field_value_set(inputTable, field, charset='ascii'):
     """Returns a set of unique field values given an input table,
        a field name string and an optional charset (default='ascii')
