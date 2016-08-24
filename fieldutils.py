@@ -47,7 +47,11 @@ def get_field_value_set(inputTable, field, charset='ascii'):
 
 
 def pprint_fields(table):
-    """ pretty print a table's fields and their properties """
+    """ pretty print a table's fields and their properties
+
+        inputTable{String}:
+            Path or reference to feature class or table.
+    """
 
     def _print(l):
         print("".join(["{:>12}".format(i) for i in l]))
