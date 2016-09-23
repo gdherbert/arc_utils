@@ -3,7 +3,7 @@ __AUTHOR__ = 'Grant Herbert'
 import arcpy
 from arcutils.outputmsg import output_msg
 
-def listFieldNames(inputTable):
+def list_field_names(inputTable):
     """Returns an array of field names given an input table.
 
         inputTable{String}:
@@ -21,19 +21,19 @@ def get_field_value_set(inputTable, field, charset='ascii'):
        a field name string and an optional charset (default='ascii')
        ascii charset will force encoding with ignore option.
 
-        inputTable{String}:
+        inputTable {String}:
             Path or reference to feature class or table.
 
-        field{String}:
+        field {String}:
             name of the field to parse
 
-        charset{String}:
+        charset {String}:
             character set to use (default = 'ascii').
             Valid values are those in the Python documentation for string encode.
        """
 
     try:
-        valueSet = set() # set to hold unique values
+        value_set = set() # set to hold unique values
         # use data access search cursor combined with, 'with'
         with arcpy.da.SearchCursor(inputTable, field) as values:
             # iterate through all values returned by Search Cursor
@@ -43,15 +43,15 @@ def get_field_value_set(inputTable, field, charset='ascii'):
                 # allow duplicates.
                 if value[0] is None:
                     #Null value
-                    valueSet.add("")
+                    value_set.add("")
                 else:
                     if charset != 'ascii':
-                        valueSet.add(value[0])
+                        value_set.add(value[0])
                     else:
                         #if unicode strings are causing problem, try
-                        valueSet.add(value[0].encode('ascii', 'ignore'))
+                        value_set.add(value[0].encode('ascii', 'ignore'))
         # return list of values
-        return valueSet
+        return value_set
 
     except arcpy.ExecuteError:
         output_msg(arcpy.GetMessages(2))
@@ -62,7 +62,7 @@ def get_field_value_set(inputTable, field, charset='ascii'):
 def pprint_fields(table):
     """ pretty print a table's fields and their properties
 
-        inputTable{String}:
+        inputTable {String}:
             Path or reference to feature class or table.
     """
 
@@ -83,14 +83,14 @@ def field_report(featureclass):
     """Create a csv report of all fields in a featureclass,
     to the base directory or user folder.
 
-    featureclass{String}:
+    featureclass {String}:
         path or reference to a featureclass.
     """
     import datetime
     import os
 
-    startTime = datetime.datetime.today()
-    startDateString = startTime.strftime('%Y%m%d')
+    start_time = datetime.datetime.today()
+    start_date_string = start_time.strftime('%Y%m%d')
     default_env = arcpy.env.workspace
     fc = featureclass
 
@@ -103,18 +103,18 @@ def field_report(featureclass):
         arcpy.env.workspace = fc
         if os.path.isdir(desc.Path):
             if desc.Path.lower().endswith(".gdb"):
-                reportDir = arcpy.Describe(desc.Path).Path
+                report_dir = arcpy.Describe(desc.Path).Path
             else:
-                reportDir = desc.Path
+                report_dir = desc.Path
         else:
-            reportDir = os.environ['USERPROFILE']
-            if os.path.exists(reportDir + "\\Documents"):
-                reportDir = reportDir + "\\Documents"
+            report_dir = os.environ['USERPROFILE']
+            if os.path.exists(report_dir + "\\Documents"):
+                report_dir = report_dir + "\\Documents"
 
-        logFileName = desc.baseName + "_Field_Report " + startDateString + ".csv"
-        logFilePath = os.path.join(reportDir, logFileName)
-        output_msg("Report file: {0}".format(logFilePath))
-        with open(logFilePath, "w") as logFile:
+        log_file_name = desc.baseName + "_Field_Report " + start_date_string + ".csv"
+        log_file_path = os.path.join(report_dir, log_file_name)
+        output_msg("Report file: {0}".format(log_file_path))
+        with open(log_file_path, "w") as logFile:
             logFile.write("{0}\n".format(desc.name))
             logFile.write("FieldName,FieldAlias,BaseName,")
             logFile.write("DefaultValue,FieldType,Required,Editable,isNullable,")
