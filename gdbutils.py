@@ -2,8 +2,8 @@ __AUTHOR__ = 'Grant Herbert'
 """utilities for working with geodatabases"""
 import arcpy
 import os
-from arcutils.outputmsg import output_msg
-from arcutils.outputmsg import get_output_path
+from arcutils.outpututils import output_msg
+from arcutils.outpututils import get_output_path
 
 def report_fields(geodatabase):
     """Create a cvs report of all fields in all featureclasses/tables from a geodatabase

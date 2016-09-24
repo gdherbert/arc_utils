@@ -1,8 +1,8 @@
 __AUTHOR__ = 'Grant Herbert'
 """utilities for working with fields"""
 import arcpy
-from arcutils.outputmsg import output_msg
-from arcutils.outputmsg import get_output_path
+from arcutils.outpututils import output_msg
+from arcutils.outpututils import get_output_path
 
 def list_field_names(inputTable):
     """Returns an array of field names given an input table.

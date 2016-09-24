@@ -6,5 +6,5 @@ __all__ = ['fieldutils', 'gdbutils', 'tableutils']
 import fieldutils
 import gdbutils
 import tableutils
-from outputmsg import output_msg
+from outpututils import output_msg
 
