@@ -3,6 +3,7 @@ __AUTHOR__ = 'Grant Herbert'
 import arcpy
 import os
 from arcutils.outputmsg import output_msg
+from arcutils.outputmsg import get_output_path
 
 def report_fields(geodatabase):
     """Create a cvs report of all fields in all featureclasses/tables from a geodatabase
@@ -21,12 +22,9 @@ def report_fields(geodatabase):
     try:
         desc = arcpy.Describe(gdb)
         arcpy.env.workspace = gdb
-        if os.path.isdir(desc.Path):
-            report_dir = desc.Path
-        else:
-            report_dir = os.environ['USERPROFILE']
-            if os.path.exists(report_dir + "\\Documents"):
-                report_dir = report_dir + "\\Documents"
+
+        report_dir = get_output_path(desc.Path)
+
         log_file_name = "_GDBFCReport " + start_date_string + ".csv"
         log_file_path = os.path.join(report_dir, log_file_name)
         output_msg("Report file: {0}".format(log_file_path))
@@ -87,12 +85,9 @@ def export_domains(geodatabase):
         desc = arcpy.Describe(gdb)
         arcpy.env.workspace = gdb
         domains = desc.domains
-        if os.path.isdir(desc.Path):
-            report_dir = desc.Path
-        else:
-            report_dir = os.environ['USERPROFILE']
-            if os.path.exists(report_dir + "\\Documents"):
-                report_dir = report_dir + "\\Documents"
+
+        report_dir = get_output_path(desc.Path)
+
         for domain in domains:
             # export the domains to tables in the gdb
             table = os.path.join(gdb, arcpy.ValidateTableName(domain, gdb))

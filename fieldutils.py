@@ -2,6 +2,7 @@ __AUTHOR__ = 'Grant Herbert'
 """utilities for working with fields"""
 import arcpy
 from arcutils.outputmsg import output_msg
+from arcutils.outputmsg import get_output_path
 
 def list_field_names(inputTable):
     """Returns an array of field names given an input table.
@@ -101,15 +102,8 @@ def field_report(featureclass):
         except:
             raise ValueError("{} not found".format(fc))
         arcpy.env.workspace = fc
-        if os.path.isdir(desc.Path):
-            if desc.Path.lower().endswith(".gdb"):
-                report_dir = arcpy.Describe(desc.Path).Path
-            else:
-                report_dir = desc.Path
-        else:
-            report_dir = os.environ['USERPROFILE']
-            if os.path.exists(report_dir + "\\Documents"):
-                report_dir = report_dir + "\\Documents"
+
+        report_dir = get_output_path(desc.Path)
 
         log_file_name = desc.baseName + "_Field_Report " + start_date_string + ".csv"
         log_file_path = os.path.join(report_dir, log_file_name)
