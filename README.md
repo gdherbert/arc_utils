@@ -6,9 +6,11 @@
 
 ### How do I get set up? ###
 
-* To use the utilities: 
+* To install the utilities: 
 * Clone the repo to your machine and add the path to the python install https://docs.python.org/2/tutorial/modules.html#the-module-search-path
-* optionally, you can copy the folder to the site-packages in the ESRI python install directory
+* Optionally, you can copy the folder to the site-packages in the ESRI python install directory, or add a .pth file to the site-packages folder pointing to the clone directory.
+
+To use the utilities:
 * in the python window in ArcMap/ArcCatalog type: import arc_utils
 * typing 'arc_utils.' will reveal the modules and functions available to you if you have autocomplete on
 * Dependencies: arcpy
