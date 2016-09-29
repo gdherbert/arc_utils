@@ -61,8 +61,9 @@ def get_valid_output_path(path, folder_reqd=True, make_dir=True):
 
     return report_dir
 
-def output_to_file(result, path, file):
+def output_to_file(string, path, filename):
     """send result string to file"""
     path = get_valid_output_path(path)
-
-    pass
+    output_file = os.path.join(path, filename)
+    with open(output_file, "w") as output:
+        output_file.write(string)
