@@ -21,7 +21,7 @@ def make_field_dict(input_fc):
     return field_dict
 
 
-def compare_table_schemas(fc1, fc2):
+def compare_table_schemas(tbl1, tbl2):
     """compare the schemas of two tables. Return an array of results.
 
     table1 {String}:
@@ -30,16 +30,16 @@ def compare_table_schemas(fc1, fc2):
             Path or reference to feature class or table.
     """
     error_list= []
-    field_dict1 = make_field_dict(fc1)
-    field_dict2 = make_field_dict(fc2)
+    field_dict1 = make_field_dict(tbl1)
+    field_dict2 = make_field_dict(tbl2)
     for ifield in sorted(list(set(field_dict1.keys()+field_dict2.keys()))):
         # check name for missing fields first
         if not (field_dict1.has_key(ifield)):
-            the_result = " {0} not found in {1}".format(ifield,fc1)
+            the_result = " {0} not found in {1}".format(ifield, tbl1)
             output_msg(the_result)
             error_list.append(the_result)
         elif not (field_dict2.has_key(ifield)):
-            the_result = " {0} not found in {1}".format(ifield,fc2)
+            the_result = " {0} not found in {1}".format(ifield, tbl2)
             output_msg(the_result)
             error_list.append(the_result)
         else:
@@ -53,7 +53,7 @@ def compare_table_schemas(fc1, fc2):
                 field_one_length = field_dict1[ifield][2]
                 field_two_length = field_dict2[ifield][2]
 
-                the_result = " {0} {1} {2} {3} does not exactly match {4} {5} {6} {7}".format(fc1, ifield, field_one_type, field_one_length, fc2, ifield, field_two_type, field_two_length)
+                the_result = " {0} {1} {2} {3} does not exactly match {4} {5} {6} {7}".format(tbl1, ifield, field_one_type, field_one_length, tbl2, ifield, field_two_type, field_two_length)
                 output_msg(the_result)
                 error_list.append(the_result)
 
