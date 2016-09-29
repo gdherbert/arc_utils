@@ -1,5 +1,6 @@
-__AUTHOR__ = 'Grant Herbert'
 """utilities for working with fields"""
+__AUTHOR__ = 'Grant Herbert'
+
 import arcpy
 from arcutils.outpututils import output_msg
 from arcutils.outpututils import get_output_path

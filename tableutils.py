@@ -1,5 +1,6 @@
+"""utilities for working with tables"""
 __AUTHOR__ = 'Grant Herbert'
-"""utilities for working with fields"""
+
 import arcpy
 from arcutils.outpututils import output_msg
 

@@ -1,3 +1,4 @@
+"""ArcGIS python utilities"""
 __VERSION__ = '0.5'
 __AUTHOR__ = 'Grant Herbert'
 

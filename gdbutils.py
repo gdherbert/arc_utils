@@ -1,5 +1,6 @@
-__AUTHOR__ = 'Grant Herbert'
 """utilities for working with geodatabases"""
+__AUTHOR__ = 'Grant Herbert'
+
 import arcpy
 import os
 from arcutils.outpututils import output_msg
