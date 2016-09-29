@@ -3,7 +3,7 @@ import arcpy
 import os
 
 def output_msg(msg, severity=0):
-    """Outputs to print and/or to Arc. Useful to include in a tool
+    """Output msg to print and/or to Arc. Useful to include in a tool
     that can be run in Python or in ArcGIS
 
     msg{String}:
@@ -38,7 +38,7 @@ def output_msg(msg, severity=0):
         pass
 
 
-def get_output_path(path, folder_reqd=True, make_dir=True):
+def get_valid_output_path(path, folder_reqd=True, make_dir=True):
     """ return a valid path for an output, eg a folder path.
     If folder_reqd is True (default) and a gdb is passed as path,
     will drop down to the folder containing gdb.
