@@ -4,7 +4,7 @@ __AUTHOR__ = 'Grant Herbert'
 
 __all__ = ['fieldutils', 'gdbutils', 'tableutils']
 
-import fieldutils
-import gdbutils
-import tableutils
+from arcutils import fieldutils
+from arcutils import gdbutils
+from arcutils import tableutils
 
