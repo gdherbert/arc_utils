@@ -60,3 +60,9 @@ def get_valid_output_path(path, folder_reqd=True, make_dir=True):
             report_dir = report_dir + "\\Documents"
 
     return report_dir
+
+def output_to_file(result, path, file):
+    """send result string to file"""
+    path = get_valid_output_path(path)
+
+    pass
