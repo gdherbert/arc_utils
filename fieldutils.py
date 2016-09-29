@@ -35,15 +35,9 @@ def get_field_value_set(inputTable, field, charset='ascii'):
 
     try:
         value_set = set() # set to hold unique values
-        # use data access search cursor combined with, 'with'
         with arcpy.da.SearchCursor(inputTable, field) as values:
-            # iterate through all values returned by Search Cursor
             for value in values:
-                # Add value to set. If the value is not present,
-                # it will be added. If it is present, the set will not
-                # allow duplicates.
                 if value[0] is None:
-                    #Null value
                     value_set.add("")
                 else:
                     if charset != 'ascii':
@@ -51,7 +45,7 @@ def get_field_value_set(inputTable, field, charset='ascii'):
                     else:
                         #if unicode strings are causing problem, try
                         value_set.add(value[0].encode('ascii', 'ignore'))
-        # return list of values
+
         return value_set
 
     except arcpy.ExecuteError:
