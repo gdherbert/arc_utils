@@ -1,6 +1,3 @@
-# function from
-# http://help.arcgis.com/en/arcgisdesktop/10.0/help/index.html#//00150000000p000000.htm
-
 import arcpy
 import os
 
@@ -15,6 +12,8 @@ def output_msg(msg, severity=0):
         severity = 0 (none), 1 (warning), 2 (error)
     usage:
         output_msg("message")
+
+    function from http://help.arcgis.com/en/arcgisdesktop/10.0/help/index.html#//00150000000p000000.htm
     """
 
     # Adds a Message (in case this is run as a tool)
@@ -38,8 +37,14 @@ def output_msg(msg, severity=0):
         pass
 
 
-def get_output_path(path, folder_reqd=True, make_dir=False):
-    """ return a valid path for an output"""
+def get_output_path(path, folder_reqd=True, make_dir=True):
+    """ return a valid path for an output, eg a folder path.
+    If folder_reqd is True (default) and a gdb is passed as path,
+    will drop down to the folder containing gdb.
+    If path does not exist and make_dir is True (default)
+    folder will be created.
+    Otherwise will default to userprofile\documents folder
+    """
     report_dir = path
     if os.path.isdir(path):
         if folder_reqd:
