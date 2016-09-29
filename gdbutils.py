@@ -6,7 +6,7 @@ import os
 from arcutils.outpututils import output_msg
 from arcutils.outpututils import get_output_path
 
-def report_fields(geodatabase):
+def report_all_fields(geodatabase):
     """Create a cvs report of all fields in all featureclasses/tables from a geodatabase
     to the geodatabase directory or user folder.
 
@@ -73,7 +73,7 @@ def report_fields(geodatabase):
         output_msg("Completed")
 
 
-def export_domains(geodatabase):
+def export_all_domains(geodatabase):
     """Output all the domains in a geodatabase
     to dbf files in the geodatabase directory or user folder.
 
