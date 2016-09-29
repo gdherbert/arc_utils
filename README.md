@@ -11,8 +11,8 @@
 * Optionally, you can copy the folder to the site-packages in the ESRI python install directory, or add a .pth file to the site-packages folder pointing to the clone directory.
 
 To use the utilities:
-* in the python window in ArcMap/ArcCatalog type: import arc_utils
-* typing 'arc_utils.' will reveal the modules and functions available to you if you have autocomplete on
+* in the python window in ArcMap/ArcCatalog type: import arcutils
+* typing 'arcutils.' will reveal the modules and functions available to you if you have autocomplete on
 * Dependencies: arcpy
 
 ### Contribution guidelines ###
