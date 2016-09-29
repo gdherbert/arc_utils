@@ -61,6 +61,7 @@ def get_valid_output_path(path, folder_reqd=True, make_dir=True):
 
     return report_dir
 
+
 def output_to_file(data, path, filename):
     """send result string to file"""
     path = get_valid_output_path(path)

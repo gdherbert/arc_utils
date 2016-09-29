@@ -3,8 +3,9 @@ __AUTHOR__ = 'Grant Herbert'
 
 import arcpy
 import os
+import sys
 from arcutils.outpututils import output_msg
-from arcutils.outpututils import get_output_path
+from arcutils.outpututils import get_valid_output_path
 
 def report_all_fields(geodatabase):
     """Create a cvs report of all fields in all featureclasses/tables from a geodatabase
@@ -24,7 +25,7 @@ def report_all_fields(geodatabase):
         desc = arcpy.Describe(gdb)
         arcpy.env.workspace = gdb
 
-        report_dir = get_output_path(desc.Path)
+        report_dir = get_valid_output_path(desc.Path)
 
         log_file_name = "_GDBFCReport " + start_date_string + ".csv"
         log_file_path = os.path.join(report_dir, log_file_name)
@@ -65,7 +66,8 @@ def report_all_fields(geodatabase):
                         output_msg(arcpy.GetMessages())
                         continue
 
-    except Exception, e:
+    except:
+        e = sys.exec_info()[1]
         output_msg(str(e))
         output_msg(arcpy.GetMessages())
     finally:
