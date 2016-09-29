@@ -6,7 +6,7 @@ from arcutils.outpututils import output_msg
 from arcutils.outpututils import get_output_path
 
 def list_field_names(inputTable):
-    """Returns an array of field names given an input table.
+    """Return an array of field names given an input table.
 
         inputTable{String}:
             Path or reference to feature class or table.
@@ -19,7 +19,7 @@ def list_field_names(inputTable):
 
 
 def get_field_value_set(inputTable, field, charset='ascii'):
-    """Returns a set of unique field values given an input table,
+    """Return a set of unique field values given an input table,
        a field name string and an optional charset (default='ascii')
        ascii charset will force encoding with ignore option.
 
