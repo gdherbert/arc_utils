@@ -22,7 +22,7 @@ def make_field_dict(input_fc):
 
 
 def compare_table_schemas(fc1, fc2):
-    """compare the schemas of two tables. Returns an array of results.
+    """compare the schemas of two tables. Return an array of results.
 
     table1 {String}:
             Path or reference to feature class or table.
