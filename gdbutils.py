@@ -23,10 +23,11 @@ def report_all_fields(geodatabase):
     try:
         desc = arcpy.Describe(gdb)
         arcpy.env.workspace = gdb
+        gdb_name = desc.name.split(".")[0]
 
         report_dir = get_valid_output_path(desc.Path)
 
-        log_file_name = "_GDBFCReport " + start_date_string + ".csv"
+        log_file_name = "{}_GDBFCReport_{}.csv".format(gdb_name, start_date_string)
         log_file_path = os.path.join(report_dir, log_file_name)
         output_msg("Report file: {0}".format(log_file_path))
         # list all datasets
