@@ -6,6 +6,7 @@ import os
 from arcutils.outpututils import output_msg
 from arcutils.outpututils import get_valid_output_path
 
+
 def report_all_fields(geodatabase):
     """Create a cvs report of all fields in all featureclasses/tables from a geodatabase
     to the geodatabase directory or user folder.
@@ -36,21 +37,33 @@ def report_all_fields(geodatabase):
         # write out gdb info, fields etc
         with open(log_file_path, "w") as logFile:
             logFile.write("Geodatabase: {0}\n".format(gdb))
-            logFile.write("Dataset,FeatureClass,FieldName,FieldAlias,BaseName,DefaultValue,FieldType,Required,Editable,isNullable,FieldLength,FieldPrecision,FieldScale,FieldDomain\n")
+            logFile.write(
+                "Dataset,FeatureClass,FieldName,FieldAlias,BaseName,DefaultValue,FieldType,Required,Editable,isNullable,FieldLength,FieldPrecision,FieldScale,FieldDomain\n")
             for tbl in arcpy.ListTables():
-                    output_msg("Processing Table: {0}".format(tbl))
-                    try:
-                        fields = arcpy.ListFields(tbl)
-                        for field in fields:
-                            logFile.write("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13}\n".format("", tbl,
-                                 field.name, field.aliasName, field.baseName,
-                                 field.defaultValue, field.type, field.required,
-                                 field.editable, field.isNullable, field.length,
-                                 field.precision, field.scale, field.domain))
-                    except Exception as e:
-                        output_msg(str(e.args[0]))
-                        output_msg(arcpy.GetMessages())
-                        continue
+                output_msg("Processing Table: {0}".format(tbl))
+                try:
+                    fields = arcpy.ListFields(tbl)
+                    for field in fields:
+                        logFile.write("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13}\n".format("", tbl,
+                                                                                                             field.name,
+                                                                                                             field.aliasName,
+                                                                                                             field.baseName,
+                                                                                                             field.defaultValue,
+                                                                                                             field.type,
+                                                                                                             field.required,
+                                                                                                             field.editable,
+                                                                                                             field.isNullable,
+                                                                                                             field.length,
+                                                                                                             field.precision,
+                                                                                                             field.scale,
+                                                                                                             field.domain))
+                    # fields listed, add a blank line
+                    logFile.write("\n")
+
+                except Exception as e:
+                    output_msg(str(e.args[0]))
+                    output_msg(arcpy.GetMessages())
+                    continue
 
             for dataset in datasets:
                 for fc in arcpy.ListFeatureClasses(feature_dataset=dataset):
@@ -58,11 +71,23 @@ def report_all_fields(geodatabase):
                     try:
                         fields = arcpy.ListFields(fc)
                         for field in fields:
-                            logFile.write("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13}\n".format(dataset, fc,
-                                                                                                                 field.name, field.aliasName, field.baseName,
-                                                                                                                 field.defaultValue, field.type, field.required,
-                                                                                                                 field.editable, field.isNullable, field.length,
-                                                                                                                 field.precision, field.scale, field.domain))
+                            logFile.write(
+                                "{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13}\n".format(dataset, fc,
+                                                                                                       field.name,
+                                                                                                       field.aliasName,
+                                                                                                       field.baseName,
+                                                                                                       field.defaultValue,
+                                                                                                       field.type,
+                                                                                                       field.required,
+                                                                                                       field.editable,
+                                                                                                       field.isNullable,
+                                                                                                       field.length,
+                                                                                                       field.precision,
+                                                                                                       field.scale,
+                                                                                                       field.domain))
+                        # fields listed, add a blank line
+                        logFile.write("\n")
+
                     except Exception as e:
                         output_msg(str(e.args[0]))
                         output_msg(arcpy.GetMessages())
@@ -97,7 +122,7 @@ def export_all_domains(geodatabase):
             table = os.path.join(gdb, arcpy.ValidateTableName(domain, gdb))
             try:
                 arcpy.DomainToTable_management(gdb, domain, table,
-                'field','description', '#')
+                                               'field', 'description', '#')
                 # export the table to dbf
                 output_msg('Exporting {0} domain to dbf in {1}'.format(domain, report_dir))
                 arcpy.TableToDBASE_conversion(Input_Table=table, Output_Folder=report_dir)
@@ -112,4 +137,3 @@ def export_all_domains(geodatabase):
     finally:
         arcpy.env.workspace = default_env
         output_msg("Completed")
-
