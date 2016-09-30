@@ -3,7 +3,6 @@ __AUTHOR__ = 'Grant Herbert'
 
 import arcpy
 import os
-import sys
 from arcutils.outpututils import output_msg
 from arcutils.outpututils import get_valid_output_path
 
@@ -47,7 +46,8 @@ def report_all_fields(geodatabase):
                                  field.defaultValue, field.type, field.required,
                                  field.editable, field.isNullable, field.length,
                                  field.precision, field.scale, field.domain))
-                    except:
+                    except Exception as e:
+                        output_msg(str(e.args[0]))
                         output_msg(arcpy.GetMessages())
                         continue
 
@@ -62,13 +62,13 @@ def report_all_fields(geodatabase):
                                                                                                                  field.defaultValue, field.type, field.required,
                                                                                                                  field.editable, field.isNullable, field.length,
                                                                                                                  field.precision, field.scale, field.domain))
-                    except:
+                    except Exception as e:
+                        output_msg(str(e.args[0]))
                         output_msg(arcpy.GetMessages())
                         continue
 
-    except:
-        e = sys.exec_info()[1]
-        output_msg(str(e))
+    except Exception as e:
+        output_msg(str(e.args[0]))
         output_msg(arcpy.GetMessages())
     finally:
         arcpy.env.workspace = default_env
@@ -89,7 +89,7 @@ def export_all_domains(geodatabase):
         arcpy.env.workspace = gdb
         domains = desc.domains
 
-        report_dir = get_output_path(desc.Path)
+        report_dir = get_valid_output_path(desc.Path)
 
         for domain in domains:
             # export the domains to tables in the gdb
@@ -102,10 +102,11 @@ def export_all_domains(geodatabase):
                 arcpy.TableToDBASE_conversion(Input_Table=table, Output_Folder=report_dir)
                 # clean up the table
                 arcpy.Delete_management(table)
-            except:
+            except Exception as e:
                 output_msg(arcpy.GetMessages())
                 continue
-    except:
+    except Exception as e:
+        output_msg(str(e.args[0]))
         output_msg(arcpy.GetMessages())
     finally:
         arcpy.env.workspace = default_env

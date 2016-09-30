@@ -118,10 +118,12 @@ def field_report(featureclass):
                          field.defaultValue, field.type, field.required,
                          field.editable, field.isNullable, field.length,
                          field.precision, field.scale, field.domain))
-            except:
+            except Exception as e:
+                output_msg(str(e.args[0]))
                 output_msg(arcpy.GetMessages())
 
-    except:
+    except Exception as e:
+        output_msg(str(e.args[0]))
         output_msg(arcpy.GetMessages())
     finally:
         output_msg("Completed")
