@@ -2,7 +2,7 @@
 
 
 ### What is this repository for? ###
-* A collection of (mostly) arcpy related utilities for use within ArcGIS (ArcCatalog/ArcMap).
+* A collection of (mostly) arcpy related utilities for use within ArcGIS (ArcCatalog/ArcMap) and Python 2.7. Going forward, this repo will be compatible with ArcGIS Pro (Python 3) as well.
 
 ### How do I get set up? ###
 
@@ -11,7 +11,7 @@
 * Optionally, you can copy the folder to the site-packages in the ESRI python install directory, or add a .pth file to the site-packages folder pointing to the clone directory.
 
 To use the utilities:
-* in the python window in ArcMap/ArcCatalog type: import arcutils
+* in the python window in ArcMap/ArcCatalog/Pro type: import arcutils
 * typing 'arcutils.' will reveal the modules and functions available to you if you have autocomplete on
 * Dependencies: arcpy
 
