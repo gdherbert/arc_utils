@@ -1,10 +1,9 @@
-"""utilities for working with tables"""
-__AUTHOR__ = 'Grant Herbert'
-
+from __future__ import print_function, unicode_literals, absolute_import
 import arcpy
 from arcutils.outpututils import output_msg
 from arcutils.outpututils import get_valid_output_path
 
+"""utilities for working with tables"""
 
 def pprint_fields(table):
     """ pretty print a table's fields and their properties
@@ -30,6 +29,7 @@ def list_field_names(inputTable):
 
         inputTable{String}:
             Path or reference to feature class or table.
+        :return array of field names
     """
     f_list = []
     for f in arcpy.ListFields(inputTable):
@@ -47,6 +47,7 @@ def _make_field_dict(input_fc, ignore_fields=None, skip_shape=True):
             Array of strings containing field names to ignore. Default is None
     skip_shape {Boolean}:
             Boolean to skip shape fields or not; Default is True
+    :return dictionary of field name: attributes
     """
     if ignore_fields is None:
         fields_to_ignore = []
@@ -72,8 +73,9 @@ def compare_table_schemas(tbl1, tbl2):
             Path or reference to feature class or table.
     table2 {String}:
             Path or reference to feature class or table.
+    :return array of results (field not found, field same, etc)
     """
-    error_list= []
+    result_list= []
     field_dict1 = _make_field_dict(tbl1)
     field_dict2 = _make_field_dict(tbl2)
     for ifield in sorted(list(set(field_dict1.keys()+field_dict2.keys()))):
@@ -81,11 +83,11 @@ def compare_table_schemas(tbl1, tbl2):
         if not (field_dict1.has_key(ifield)):
             the_result = " {0} not found in {1}".format(ifield, tbl1)
             output_msg(the_result)
-            error_list.append(the_result)
+            result_list.append(the_result)
         elif not (field_dict2.has_key(ifield)):
             the_result = " {0} not found in {1}".format(ifield, tbl2)
             output_msg(the_result)
-            error_list.append(the_result)
+            result_list.append(the_result)
         else:
             # string comparison of name, type and length
             if field_dict1[ifield] == field_dict2[ifield]:
@@ -99,9 +101,9 @@ def compare_table_schemas(tbl1, tbl2):
 
                 the_result = " {0} {1} {2} {3} does not exactly match {4} {5} {6} {7}".format(tbl1, ifield, field_one_type, field_one_length, tbl2, ifield, field_two_type, field_two_length)
                 output_msg(the_result)
-                error_list.append(the_result)
+                result_list.append(the_result)
 
-    return error_list
+    return result_list
 
 
 def report_all_fields_to_csv(featureclass):
