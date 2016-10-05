@@ -1,5 +1,7 @@
-"""utilities for working with fields in a table or featureclass"""
 from __future__ import print_function, unicode_literals, absolute_import
+"""utilities for working with fields in a table or featureclass
+"""
+
 import arcpy
 from arcutils.outpututils import output_msg
 

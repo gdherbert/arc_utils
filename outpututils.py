@@ -1,6 +1,7 @@
-"""output related utilities"""
-
 from __future__ import print_function, unicode_literals, absolute_import
+"""output related utilities
+"""
+
 import arcpy
 import os
 

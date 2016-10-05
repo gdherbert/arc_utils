@@ -1,5 +1,7 @@
-"""utilities for working with geodatabases and reporting on geodatabase contents"""
 from __future__ import print_function, unicode_literals, absolute_import
+"""utilities for working with geodatabases and reporting on geodatabase contents
+"""
+
 import arcpy
 import os
 from arcutils.outpututils import output_msg

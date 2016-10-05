@@ -1,4 +1,5 @@
-"""A collection of python utilities for ArcGIS Desktop and ArcGIS Pro"""
+"""A collection of python utilities for ArcGIS Desktop and ArcGIS Pro
+"""
 __VERSION__ = '0.5'
 __AUTHOR__ = 'Grant Herbert'
 

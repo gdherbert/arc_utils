@@ -1,5 +1,7 @@
-"""ArcGIS Desktop mxd related utilities"""
 from __future__ import print_function, unicode_literals, absolute_import
+"""ArcGIS Desktop mxd related utilities
+"""
+
 import arcpy
 
 class MxdObj(object):
@@ -8,8 +10,12 @@ class MxdObj(object):
         path: a string representing an mxd file
     """
     def __init__(self, mxd_path):
-        """ :return reference to mxd"""
+        """ sets up reference to mxd
+        adds methods
+        """
         self.mxd = arcpy.mapping.MapDocument(mxd_path)
+        self.layer_obj_array = self.get_layer_obj_as_array()
+        self.layer_names_array = self.get_layer_names_as_array()
 
     def get_layer_obj_as_array(self):
         """ :return array of layer objects"""

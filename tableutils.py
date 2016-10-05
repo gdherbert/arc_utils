@@ -1,5 +1,7 @@
-"""utilities for working with tables"""
 from __future__ import print_function, unicode_literals, absolute_import
+"""utilities for working with tables
+"""
+
 import arcpy
 from arcutils.outpututils import output_msg
 from arcutils.outpututils import get_valid_output_path
