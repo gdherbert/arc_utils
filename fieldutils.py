@@ -32,7 +32,7 @@ def get_field_value_set(inputTable, field, charset='ascii'):
                     if charset != 'ascii':
                         value_set.add(value[0])
                     else:
-                        #if unicode strings are causing problem, try
+                        # if unicode strings are causing problem, try
                         value_set.add(value[0].encode('ascii', 'ignore'))
 
         return value_set

@@ -5,7 +5,7 @@ from __future__ import print_function, unicode_literals, absolute_import
 import arcpy
 
 class MxdObj(object):
-    """ methods for working with an mxd file
+    """ provide methods for working with an mxd file
     attributes:
         path: a string representing an mxd file
     """
