@@ -10,8 +10,11 @@ class AprxObj(object):
         path: a string representing an aprx file
     """
     def __init__(self, aprx_path):
-        """ :return reference to aprx"""
+        """ sets up reference to aprx
+        """
         self.aprx = arcpy.mp.ArcGISProject(aprx_path)
+        self.layer_obj_array = self.get_layer_obj_as_array()
+        self.layer_names_array = self.get_layer_names_as_array()
 
     def get_map_object(self):
         """ :return map object"""
