@@ -5,7 +5,7 @@ from __future__ import print_function, unicode_literals, absolute_import
 import arcpy
 
 class AprxObj(object):
-    """ provide methods for working with an aprx file
+    """ provide methods for working with an ArcGIS Pro aprx file
     attributes:
         path: a string representing an aprx file
     """
