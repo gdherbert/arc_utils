@@ -1,6 +1,8 @@
-"""output related utilities"""
+from __future__ import print_function, unicode_literals, absolute_import
 import arcpy
 import os
+
+"""output related utilities"""
 
 def output_msg(msg, severity=0):
     """Output msg to print and/or to Arc. Useful to include in a tool
@@ -45,6 +47,13 @@ def get_valid_output_path(path, folder_reqd=True, make_dir=True):
     If path does not exist and make_dir is True (default)
     folder will be created.
     Otherwise will default to userprofile\documents folder
+    path {String}:
+        filepath
+    folder_reqd {Boolean}:
+        returned path must be a folder
+    make_dir {Boolean}:
+        make the directory if not exists
+    :return path
     """
     report_dir = path
     if os.path.isdir(path):
