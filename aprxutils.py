@@ -1,10 +1,9 @@
+"""ArcGIS Pro project related utilities"""
 from __future__ import print_function, unicode_literals, absolute_import
 import arcpy
 
-"""ArcGIS Pro project related utilities"""
-
 class AprxObj(object):
-    """ turn an aprx path into an aprx object
+    """ methods for working with an aprx file
     attributes:
         path: a string representing an aprx file
     """
@@ -26,7 +25,7 @@ class AprxObj(object):
         return layer_obj_array
 
     def get_layer_obj_gen(self):
-        """ yields layer objects"""
+        """ yields layer object"""
         lyr_list = self.get_map_object()
         for layer in lyr_list.listLayers():
             yield layer
@@ -39,6 +38,6 @@ class AprxObj(object):
         return lyr_name_array
 
     def get_layer_names_gen(self):
-        """ yields layer names"""
+        """ yields layer names as string"""
         for lyr in self.get_layer_names_as_array():
             yield lyr

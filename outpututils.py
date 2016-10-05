@@ -1,8 +1,8 @@
+"""output related utilities"""
+
 from __future__ import print_function, unicode_literals, absolute_import
 import arcpy
 import os
-
-"""output related utilities"""
 
 def output_msg(msg, severity=0):
     """Output msg to print and/or to Arc. Useful to include in a tool

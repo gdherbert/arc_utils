@@ -1,8 +1,7 @@
+"""utilities for working with fields in a table or featureclass"""
 from __future__ import print_function, unicode_literals, absolute_import
 import arcpy
 from arcutils.outpututils import output_msg
-
-"""utilities for working with fields"""
 
 def get_field_value_set(inputTable, field, charset='ascii'):
     """Return a set of unique field values given an input table,
