@@ -14,6 +14,7 @@ To use the utilities:
 * in the python window in ArcMap/ArcCatalog/Pro type: import arcutils
 * typing 'arcutils.' will reveal the modules and functions available to you if you have autocomplete on
 * Dependencies: arcpy
+* NOTE: arcpy changes for 3.x include name change arcpy.mapping = arcpy.mp
 
 ### Contribution guidelines ###
 
