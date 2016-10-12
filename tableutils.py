@@ -107,8 +107,8 @@ def compare_table_schemas(tbl1, tbl2):
     return result_list
 
 
-def report_all_fields_to_csv(featureclass):
-    """Create a csv report of all fields in a featureclass,
+def report_fields_to_csv_schema(featureclass):
+    """Create a csv schema report of all fields in a featureclass,
     to the base directory or user folder.
 
     featureclass {String}:
@@ -136,19 +136,17 @@ def report_all_fields_to_csv(featureclass):
         log_file_path = os.path.join(report_dir, log_file_name)
         output_msg("Report file: {0}".format(log_file_path))
         with open(log_file_path, "w") as logFile:
-            logFile.write("FieldName,FieldAlias,BaseName,")
-            logFile.write("DefaultValue,FieldType,Required,Editable,isNullable,")
-            logFile.write("FieldLength,FieldPrecision,FieldScale,FieldDomain\n")
+            logFile.write("FieldName,FieldType,FieldPrecision,FieldScale,FieldLength,FieldAlias,isNullable,Required,FieldDomain,")
+            logFile.write("DefaultValue,Editable,BaseName")
+            logFile.write("\n")
 
             try:
                 fields = arcpy.ListFields(fc)
                 for field in fields:
                     output_msg("Writing {}".format(field.name))
                     logFile.write("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11}\n".format(
-                         field.name, field.aliasName, field.baseName,
-                         field.defaultValue, field.type, field.required,
-                         field.editable, field.isNullable, field.length,
-                         field.precision, field.scale, field.domain))
+                         field.name, field.type, field.precision, field.scale, field.length, field.aliasName, field.isNullable, field.required, field.domain,
+                         field.defaultValue, field.editable, field.baseName))
             except Exception as e:
                 output_msg(str(e.args[0]))
                 output_msg(arcpy.GetMessages())
@@ -159,3 +157,12 @@ def report_all_fields_to_csv(featureclass):
     finally:
         output_msg("Completed")
         arcpy.env.workspace = default_env
+
+def convert_csv_schema_to_table(csv_file, table_name):
+    # load the csv file
+    # assume headers
+    # ignore OBJECTID, SHAPE
+    fields_to_ignore =["OBJECTID", "FID", "SHAPE", "SHAPE_AREA", "SHAPE.AREA", "SHAPE.STAREA()", "SHAPE_LENGTH", "SHAPE.LEN", "SHAPE.STLENGTH()"]
+    # arcpy.AddField_management(in_table, field_name, field_type, {field_precision}, {field_scale}, {field_length}, {field_alias}, {field_is_nullable}, {field_is_required}, {field_domain})
+
+    pass
