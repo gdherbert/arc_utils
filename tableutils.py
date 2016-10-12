@@ -136,7 +136,6 @@ def report_all_fields_to_csv(featureclass):
         log_file_path = os.path.join(report_dir, log_file_name)
         output_msg("Report file: {0}".format(log_file_path))
         with open(log_file_path, "w") as logFile:
-            logFile.write("{0}\n".format(desc.name))
             logFile.write("FieldName,FieldAlias,BaseName,")
             logFile.write("DefaultValue,FieldType,Required,Editable,isNullable,")
             logFile.write("FieldLength,FieldPrecision,FieldScale,FieldDomain\n")
