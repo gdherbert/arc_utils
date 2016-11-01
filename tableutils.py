@@ -121,6 +121,8 @@ def report_fields_to_csv_schema(featureclass):
     start_date_string = start_time.strftime('%Y%m%d')
     default_env = arcpy.env.workspace
     fc = featureclass
+    # nice to convert reported types to types accepted by add field tool
+    type_conversions = {"String": "TEXT", "Float": "FLOAT", "Double": "DOUBLE", "SmallInteger": "SHORT", "Integer": "LONG", "Date": "DATE", "Blob": "BLOB", "Ratser": "RASTER", "GUID": "GUID", "TRUE": "True", "FALSE": "False"}
 
     try:
         output_msg("Processing: {}".format(fc))
@@ -144,9 +146,19 @@ def report_fields_to_csv_schema(featureclass):
                 fields = arcpy.ListFields(fc)
                 for field in fields:
                     output_msg("Writing {}".format(field.name))
-                    logFile.write("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11}\n".format(
-                         field.name, field.type, field.precision, field.scale, field.length, field.aliasName, field.isNullable, field.required, field.domain,
-                         field.defaultValue, field.editable, field.baseName))
+                    logFile.write('"{0}","{1}",{2},{3},{4},"{5}",{6},{7},"{8}",{9},{10},"{11}"\n'.format(
+                         field.name,
+                        type_conversions[field.type],
+                        field.precision,
+                        field.scale,
+                        field.length,
+                        field.aliasName,
+                        type_conversions[field.isNullable],
+                        type_conversions[field.required],
+                        field.domain,
+                        field.defaultValue,
+                        type_conversions[field.editable],
+                        field.baseName))
             except Exception as e:
                 output_msg(str(e.args[0]))
                 output_msg(arcpy.GetMessages())
