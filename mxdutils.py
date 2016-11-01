@@ -47,16 +47,21 @@ class MxdObj(object):
 
 
 def mxd_from_path(mxd_path):
-    """ mxd_path {string}: path to mxd file
+    """ Create an mxd object from path
+        mxd_path{string}:
+            path to mxd file
         :returns mxd object
     """
     mxd = arcpy.mapping.MapDocument(mxd_path)
     return mxd
 
-def list_layers_in_mxd(mxd):
-    """ mxd {object}: mxd object (use mxd_from_path)
+def list_layers_in_mxd(mxd_path):
+    """ list layers in mxd from path
+        mxd_path{string}:
+            path to mxd file
         :returns array of layer objects
     """
+    mxd = mxd_from_path(mxd_path)
     layer_list = []
     for layer in arcpy.mapping.ListLayers(mxd):
         layer_list.append(layer)
