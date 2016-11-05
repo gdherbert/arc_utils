@@ -5,6 +5,19 @@ from __future__ import print_function, unicode_literals, absolute_import
 import arcpy
 from arcutils.outpututils import output_msg
 
+def get_max_field_value_length(input_table, field):
+    """Return the length of the maximum value in the field.
+        inputTable {String}:
+            Path or reference to feature class or table.
+
+        field {String}:
+            name of the field to parse
+
+        :return integer
+    """
+    pass
+
+
 def get_field_value_set(inputTable, field, charset='ascii'):
     """Return a set of unique field values given an input table,
        a field name string and an optional charset (default='ascii')
