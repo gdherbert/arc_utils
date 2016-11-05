@@ -5,7 +5,7 @@ from __future__ import print_function, unicode_literals, absolute_import
 import arcpy
 from arcutils.outpututils import output_msg
 
-def get_max_field_value_length(input_table, field):
+def get_max_field_value_length(inputTable, field):
     """Return the length of the maximum value in the field.
         inputTable {String}:
             Path or reference to feature class or table.
@@ -15,7 +15,12 @@ def get_max_field_value_length(input_table, field):
 
         :return integer
     """
-    pass
+    length = 0
+    with arcpy.da.SearchCursor(inputTable, field) as values:
+            for value in values:
+                if len(value) > length:
+                    length = len(value)
+    return length
 
 
 def get_field_value_set(inputTable, field, charset='ascii'):
