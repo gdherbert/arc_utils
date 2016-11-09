@@ -3,13 +3,13 @@
 __VERSION__ = '0.5'
 __AUTHOR__ = 'Grant Herbert'
 
-__all__ = ['fieldutils', 'gdbutils', 'tableutils']
+__all__ = ['field.py', 'gdb.py', 'table.py']
 
 import sys
-from arcutils import fieldutils
-from arcutils import gdbutils
-from arcutils import tableutils
+from arcutils import field
+from arcutils import gdb
+from arcutils import table
 if sys.version_info.major == 3:
-    from arcutils import aprxutils
+    from arcutils import aprx
 else:
-    from arcutils import mxdutils
+    from arcutils import mxd

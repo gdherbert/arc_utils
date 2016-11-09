@@ -3,7 +3,7 @@ from __future__ import print_function, unicode_literals, absolute_import
 """
 
 import arcpy
-from arcutils.outpututils import output_msg
+from arcutils.output import output_msg
 
 def get_max_field_value_length(inputTable, field):
     """Return the length of the maximum value in the field.
