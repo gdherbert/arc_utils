@@ -18,8 +18,8 @@ def get_max_field_value_length(inputTable, field):
     length = 0
     with arcpy.da.SearchCursor(inputTable, field) as values:
             for value in values:
-                if len(value) > length:
-                    length = len(value)
+                if len(value[0]) > length:
+                    length = len(value[0])
     return length
 
 
