@@ -2,7 +2,7 @@
 
 
 ### What is this repository for? ###
-* A collection of (mostly) arcpy related utilities for use within ArcGIS (ArcCatalog/ArcMap) and Python 2.7. Going forward, this repo will be compatible with ArcGIS Pro (Python 3) as well.
+* A collection of (mostly) arcpy related utilities for use within ArcGIS (ArcCatalog/ArcMap) and Python 2.7. Going forward, this repo will be compatible with ArcGIS Pro (Python 3) as well where possible.
 
 ### How do I get set up? ###
 
