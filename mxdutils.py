@@ -11,7 +11,7 @@ class MxdObj(object):
     Usage: mxd = arcutils.mxdutils.MxdObj(path)
 
     attributes:
-        path: a string representing an mxd file
+        path: a string representing an mxd file, or "CURRENT" if used in ArcMap
     """
     def __init__(self, mxd_path):
         """ sets up reference to mxd
