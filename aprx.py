@@ -24,8 +24,8 @@ class AprxObj(object):
     def get_layer_obj_as_array(self):
         """ :return array of layer objects"""
         layer_obj_array = []
-        lyr_list = self.get_map_object()
-        for layer in lyr_list.listLayers():
+        map_obj = self.get_map_object()
+        for layer in map_obj.listLayers():
             layer_obj_array.append(layer)
         return layer_obj_array
 
