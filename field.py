@@ -46,12 +46,14 @@ def get_field_value_set(inputTable, field, charset='ascii'):
             for value in values:
                 if value[0] is None:
                     value_set.add("")
-                else:
+                elif isinstance(value[0], (str, unicode)):
                     if charset != 'ascii':
                         value_set.add(value[0])
                     else:
                         # if unicode strings are causing problem, try
                         value_set.add(value[0].encode('ascii', 'ignore'))
+                else:
+                    value_set.add(value[0])
 
         return value_set
 
