@@ -8,7 +8,7 @@ class MxdObj(object):
     """ provide methods for working with a Arc Desktop mxd file
     all standard arcpy methods are available via .mxd
 
-    Usage: mxd = arcutils.mxdutils.MxdObj(path)
+    Usage: mxd = arcutils.mxd.MxdObj(path)
 
     attributes:
         path: a string representing an mxd file, or "CURRENT" if used in ArcMap
