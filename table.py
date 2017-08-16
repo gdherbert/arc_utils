@@ -84,32 +84,23 @@ def pprint_fields(table):
         _print(["{:>12}".format(getattr(f, i)) for i in atts])
 
 
-def pprint_fields_plus(table, printonly=False):
-    """ tsv output a table's fields and their properties
+def get_field_info(table):
+    """ Create a tsv output of a table's fields and their properties
 
         inputTable {String}:
             Path or reference to feature class or table.
-        printonly {Boolean}:
-            print output to screen if true. Default returns a string that you can write to a file.
+        return string of tsv values
     """
-    def _print(l):
-        print("".join(["{:>12}".format(i) for i in l]))
-
     atts = ['name', 'aliasName', 'type', 'baseName', 'domain',
             'editable', 'isNullable', 'length', 'precision',
             'required', 'scale',]
 
-    if printonly:
-        _print(atts)
-        for f in arcpy.ListFields(table):
-            _print(["{:>12}".format(getattr(f, i)) for i in atts])
-    else:
-        str_output = "\t".join(["{}".format(i) for i in atts])
+    str_output = "\t".join(["{}".format(i) for i in atts])
+    str_output += "\n"
+    for f in arcpy.ListFields(table):
+        str_output += "\t".join(["{}".format(getattr(f, i)) for i in atts])
         str_output += "\n"
-        for f in arcpy.ListFields(table):
-            str_output += "\t".join(["{}".format(getattr(f, i)) for i in atts])
-            str_output += "\n"
-        return str_output
+    return str_output
 
 
 def list_field_names(inputTable):
