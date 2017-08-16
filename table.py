@@ -6,13 +6,72 @@ import arcpy
 from arcutils.output import output_msg
 from arcutils.output import get_valid_output_path
 
+class TableObj(object):
+    """ provide methods for working with a table/featureclass
+    
+    Usage: tbl = arcutils.table.TableObj(path)
+
+    attributes:
+        path: a string representing an table/featureclass
+    """
+    def __init__(self, table_path):
+        """ sets up reference to table
+        adds methods
+        """
+        self.path = table_path
+        self.field_name_list = self.list_field_names(self.path)
+        self.upper_field_name_dict = self._make_field_dict(self.path)
+
+
+    def list_field_names(inputTable):
+        """Return an array of field names given an input table.
+
+            inputTable{String}:
+                Path or reference to feature class or table.
+            :return array of field names
+        """
+        f_list = []
+        for f in arcpy.ListFields(inputTable):
+            f_list.append(f.name)
+
+        return f_list
+
+
+    def make_field_dict(input_fc, ignore_fields=None, skip_shape=True):
+        """return a dictionary of fields containing name normalized to upper case, type, length with the option to skip shape fields
+
+        input_fc {String}:
+                Path or reference to feature class or table.
+        ignore_fields {Array}:
+                Array of strings containing field names to ignore. Default is None
+        skip_shape {Boolean}:
+                Boolean to skip shape fields or not; Default is True
+        :return dictionary of field name: attributes
+        """
+        if ignore_fields is None:
+            fields_to_ignore = []
+        else:
+            fields_to_ignore = ignore_fields
+
+        if skip_shape:
+            fields_to_ignore.extend(["SHAPE", "SHAPE_AREA", "SHAPE.AREA", "SHAPE.STAREA()", "SHAPE_LENGTH", "SHAPE.LEN",
+                                     "SHAPE.STLENGTH()"])
+
+        l_fields = arcpy.ListFields(input_fc)
+        field_dict = dict()
+        for field in l_fields:
+            if field.name.upper() not in fields_to_ignore:
+                # return all strings as UPPER CASE
+                field_dict[field.name.upper()] = [field.name, field.type.upper(), field.length]
+        return field_dict
+
+
 def pprint_fields(table):
     """ pretty print a table's fields and their properties
 
         inputTable {String}:
             Path or reference to feature class or table.
     """
-
     def _print(l):
         print("".join(["{:>12}".format(i) for i in l]))
 
@@ -23,6 +82,24 @@ def pprint_fields(table):
 
     for f in arcpy.ListFields(table):
         _print(["{:>12}".format(getattr(f, i)) for i in atts])
+
+
+def tsv_fields(table):
+    """ tsv output a table's fields and their properties
+
+        inputTable {String}:
+            Path or reference to feature class or table.
+    """
+    def _print(l):
+        print("\t".join(["{}".format(i) for i in l]))
+
+    atts = ['name', 'aliasName', 'type', 'baseName', 'domain',
+            'editable', 'isNullable', 'length', 'precision',
+            'required', 'scale',]
+    _print(atts)
+
+    for f in arcpy.ListFields(table):
+        _print(["{}".format(getattr(f, i)) for i in atts])
 
 
 def list_field_names(inputTable):
@@ -39,7 +116,7 @@ def list_field_names(inputTable):
     return f_list
 
 
-def _make_field_dict(input_fc, ignore_fields=None, skip_shape=True):
+def make_field_dict(input_fc, ignore_fields=None, skip_shape=True):
     """return a dictionary of fields containing name normalized to upper case, type, length with the option to skip shape fields
 
     input_fc {String}:
@@ -77,8 +154,8 @@ def compare_table_schemas(tbl1, tbl2):
     :return array of results (field not found, field same, etc)
     """
     result_list= []
-    field_dict1 = _make_field_dict(tbl1)
-    field_dict2 = _make_field_dict(tbl2)
+    field_dict1 = make_field_dict(tbl1)
+    field_dict2 = make_field_dict(tbl2)
     for ifield in sorted(list(set(field_dict1.keys()+field_dict2.keys()))):
         # check name for missing fields first
         if not (field_dict1.has_key(ifield)):
