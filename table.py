@@ -18,25 +18,38 @@ class TableObj(object):
         adds methods
         """
         self.path = table_path
-        self.field_name_list = self.list_field_names(self.path)
-        self.upper_field_name_dict = self._make_field_dict(self.path)
+        self.field_name_array = self.list_field_names(self.path)
+        self.upper_field_name_dict = self.make_field_dict(self.path)
 
-
-    def list_field_names(inputTable):
+    def list_field_names(self, ignore_fields=None, skip_shape=True):
         """Return an array of field names given an input table.
 
             inputTable{String}:
                 Path or reference to feature class or table.
+            ignore_fields {Array}:
+                Array of strings containing field names to ignore. Default is None
+            skip_shape {Boolean}:
+                Boolean to skip shape fields or not; Default is True
             :return array of field names
         """
+        if ignore_fields is None:
+            fields_to_ignore = []
+        else:
+            fields_to_ignore = ignore_fields
+
+        if skip_shape:
+            fields_to_ignore.extend(["SHAPE", "SHAPE_AREA", "SHAPE.AREA", "SHAPE.STAREA()", "SHAPE_LENGTH", "SHAPE.LEN",
+                                     "SHAPE.STLENGTH()"])
+
         f_list = []
-        for f in arcpy.ListFields(inputTable):
-            f_list.append(f.name)
+        for f in arcpy.ListFields(self.path):
+            if f.name.upper() not in fields_to_ignore:
+                f_list.append(f.name)
 
         return f_list
 
 
-    def make_field_dict(input_fc, ignore_fields=None, skip_shape=True):
+    def make_field_dict(self, ignore_fields=None, skip_shape=True):
         """return a dictionary of fields containing name normalized to upper case, type, length with the option to skip shape fields
 
         input_fc {String}:
@@ -56,13 +69,68 @@ class TableObj(object):
             fields_to_ignore.extend(["SHAPE", "SHAPE_AREA", "SHAPE.AREA", "SHAPE.STAREA()", "SHAPE_LENGTH", "SHAPE.LEN",
                                      "SHAPE.STLENGTH()"])
 
-        l_fields = arcpy.ListFields(input_fc)
         field_dict = dict()
-        for field in l_fields:
+        for field in arcpy.ListFields(self.path):
             if field.name.upper() not in fields_to_ignore:
                 # return all strings as UPPER CASE
                 field_dict[field.name.upper()] = [field.name, field.type.upper(), field.length]
         return field_dict
+
+    def get_max_field_value_length(self, field):
+        """Return the length of the maximum value in the field.
+            inputTable {String}:
+                Path or reference to feature class or table.
+
+            field {String}:
+                name of the field to parse
+
+            :return integer
+        """
+        length = 0
+        with arcpy.da.SearchCursor(self.path, field) as values:
+            for value in values:
+                if len(value[0]) > length:
+                    length = len(value[0])
+        return length
+
+    def get_field_value_set(self, field, charset='ascii'):
+        """Return a set of unique field values given an input table,
+           a field name string and an optional charset (default='ascii')
+           ascii charset will force encoding with ignore option.
+
+            inputTable {String}:
+                Path or reference to feature class or table.
+
+            field {String}:
+                name of the field to parse
+
+            charset {String}:
+                character set to use (default = 'ascii').
+                Valid values are those in the Python documentation for string encode.
+            :return set of unique values
+           """
+
+        try:
+            value_set = set()  # set to hold unique values
+            with arcpy.da.SearchCursor(self.path, field) as values:
+                for value in values:
+                    if value[0] is None:
+                        value_set.add("")
+                    elif isinstance(value[0], (str, unicode)):
+                        if charset != 'ascii':
+                            value_set.add(value[0])
+                        else:
+                            # if unicode strings are causing problem, try
+                            value_set.add(value[0].encode('ascii', 'ignore'))
+                    else:
+                        value_set.add(value[0])
+
+            return value_set
+
+        except arcpy.ExecuteError:
+            output_msg(arcpy.GetMessages(2))
+        except Exception as e:
+            output_msg(e.args[0])
 
 
 def pprint_fields(table):
