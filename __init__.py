@@ -6,7 +6,6 @@ __AUTHOR__ = 'Grant Herbert'
 __all__ = ['field.py', 'gdb.py', 'table.py']
 
 import sys
-from arcutils import field
 from arcutils import gdb
 from arcutils import table
 if sys.version_info.major == 3:
