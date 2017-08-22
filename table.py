@@ -18,62 +18,29 @@ class TableObj(object):
         adds methods
         """
         self.path = table_path
-        self.field_name_array = self.list_field_names(self.path)
-        self.upper_field_name_dict = self.make_field_dict(self.path)
+        self.fields = self._list_field_names()
+        self.field_dict = self._make_field_dict()
 
-    def list_field_names(self, ignore_fields=None, skip_shape=True):
+    def _list_field_names(self):
         """Return an array of field names given an input table.
-
             inputTable{String}:
                 Path or reference to feature class or table.
-            ignore_fields {Array}:
-                Array of strings containing field names to ignore. Default is None
-            skip_shape {Boolean}:
-                Boolean to skip shape fields or not; Default is True
             :return array of field names
         """
-        if ignore_fields is None:
-            fields_to_ignore = []
-        else:
-            fields_to_ignore = ignore_fields
-
-        if skip_shape:
-            fields_to_ignore.extend(["SHAPE", "SHAPE_AREA", "SHAPE.AREA", "SHAPE.STAREA()", "SHAPE_LENGTH", "SHAPE.LEN",
-                                     "SHAPE.STLENGTH()"])
-
         f_list = []
         for f in arcpy.ListFields(self.path):
-            if f.name.upper() not in fields_to_ignore:
-                f_list.append(f.name)
-
+            f_list.append(f.name)
         return f_list
 
-
-    def make_field_dict(self, ignore_fields=None, skip_shape=True):
+    def _make_field_dict(self):
         """return a dictionary of fields containing name normalized to upper case, type, length with the option to skip shape fields
-
         input_fc {String}:
                 Path or reference to feature class or table.
-        ignore_fields {Array}:
-                Array of strings containing field names to ignore. Default is None
-        skip_shape {Boolean}:
-                Boolean to skip shape fields or not; Default is True
         :return dictionary of field name: attributes
         """
-        if ignore_fields is None:
-            fields_to_ignore = []
-        else:
-            fields_to_ignore = ignore_fields
-
-        if skip_shape:
-            fields_to_ignore.extend(["SHAPE", "SHAPE_AREA", "SHAPE.AREA", "SHAPE.STAREA()", "SHAPE_LENGTH", "SHAPE.LEN",
-                                     "SHAPE.STLENGTH()"])
-
         field_dict = dict()
         for field in arcpy.ListFields(self.path):
-            if field.name.upper() not in fields_to_ignore:
-                # return all strings as UPPER CASE
-                field_dict[field.name.upper()] = [field.name, field.type.upper(), field.length]
+            field_dict[field.name.upper()] = [field.name, field.type.upper(), field.length]
         return field_dict
 
     def get_max_field_value_length(self, field):
