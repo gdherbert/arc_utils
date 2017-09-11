@@ -18,8 +18,18 @@ class TableObj(object):
         adds methods
         """
         self.path = table_path
+        self.type = self._get_fc_type()
         self.fields = self._list_field_names()
         self.field_dict = self._make_field_dict()
+
+    def _get_fc_type(self):
+        d = arcpy.Describe(self.path)
+        if hasattr(d, 'shapeType'):
+            return d.shapeType
+        elif hasattr(d, 'dataType'):
+            return d.dataType
+        else:
+            return 'Unknown'
 
     def _list_field_names(self):
         """Array of field names
@@ -35,8 +45,7 @@ class TableObj(object):
         """
         field_dict = dict()
         for field in arcpy.ListFields(self.path):
-            max_val = self.get_field_value_set(self, field)
-            field_dict[field.name] = {"name": field.name, "type": field.type, "length": field.length, "max_val": max_val}
+            field_dict[field.name] = {"name": field.name, "type": field.type, "length": field.length}
         return field_dict
 
     def get_max_field_value_length(self, field):
@@ -179,7 +188,6 @@ def list_field_names(input_fc):
     f_list = []
     for f in arcpy.ListFields(input_fc):
         f_list.append(f.name)
-
     return f_list
 
 
@@ -254,7 +262,7 @@ def compare_schemas(fc1, fc2):
 def export_schema_to_csv(input_fc):
     """Create a csv schema report of all fields in a featureclass,
     to the base directory or user folder.
-    :param featureclass {String}:
+    :param input_fc {String}:
         path or reference to a featureclass.
     """
     import datetime
@@ -266,6 +274,13 @@ def export_schema_to_csv(input_fc):
     fc = input_fc
     # nice to convert reported types to types accepted by add field tool
     type_conversions = {"String": "TEXT", "Float": "FLOAT", "Double": "DOUBLE", "SmallInteger": "SHORT", "Integer": "LONG", "Date": "DATE", "Blob": "BLOB", "Ratser": "RASTER", "GUID": "GUID", "TRUE": "True", "FALSE": "False"}
+
+    fc_type = 'Unknown'
+    d = arcpy.Describe(fc)
+    if hasattr(d, 'shapeType'):
+        fc_type = d.shapeType
+    elif hasattr(d, 'dataType'):
+        fc_type = d.dataType
 
     try:
         output_msg("Processing: {}".format(fc))
@@ -281,7 +296,7 @@ def export_schema_to_csv(input_fc):
         log_file_path = os.path.join(report_dir, log_file_name)
         output_msg("Report file: {0}".format(log_file_path))
         with open(log_file_path, "w") as logFile:
-            logFile.write()
+            logFile.write("Type,{}".format(fc_type))
             logFile.write(
                 "FieldName,FieldType,FieldPrecision,FieldScale,FieldLength,FieldAlias,isNullable,Required,"
                 "FieldDomain,DefaultValue,Editable,BaseName\n")
