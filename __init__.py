@@ -3,7 +3,7 @@
 __VERSION__ = '0.6'
 __AUTHOR__ = 'Grant Herbert'
 
-__all__ = ['field.py', 'gdb.py', 'table.py']
+__all__ = ['gdb.py', 'table.py']
 
 import sys
 from arcutils import gdb
