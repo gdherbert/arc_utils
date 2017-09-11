@@ -81,9 +81,9 @@ class TableObj(object):
             output_msg(e.args[0])
 
 
-def pprint_fields(table):
+def pprint_fields(input_fc):
     """ pretty print a table's fields and their properties
-        :param inputTable {String}:
+        :param input_fc {String}:
             Path or reference to feature class or table.
     """
     def _print(l):
@@ -94,31 +94,31 @@ def pprint_fields(table):
             'required', 'scale',]
     _print(atts)
 
-    for f in arcpy.ListFields(table):
+    for f in arcpy.ListFields(input_fc):
         _print(["{:>12}".format(getattr(f, i)) for i in atts])
 
 
-def get_max_field_value_length(inputTable, field):
+def get_max_field_value_length(input_fc, field):
     """Return the length of the maximum value in the field.
-        :param inputTable {String}:
+        :param input_fc {String}:
             Path or reference to feature class or table.
         :param field {String}:
             name of the field to parse
         :return integer
     """
     length = 0
-    with arcpy.da.SearchCursor(inputTable, field) as values:
+    with arcpy.da.SearchCursor(input_fc, field) as values:
             for value in values:
                 if len(value[0]) > length:
                     length = len(value[0])
     return length
 
 
-def get_field_value_set(inputTable, field, charset='ascii'):
+def get_field_value_set(input_fc, field, charset='ascii'):
     """Return a set of unique field values given an input table,
        a field name string and an optional charset (default='ascii')
        ascii charset will force encoding with ignore option.
-        :param inputTable {String}:
+        :param input_fc {String}:
             Path or reference to feature class or table.
         :param field {String}:
             name of the field to parse
@@ -129,7 +129,7 @@ def get_field_value_set(inputTable, field, charset='ascii'):
     """
     try:
         value_set = set() # set to hold unique values
-        with arcpy.da.SearchCursor(inputTable, field) as values:
+        with arcpy.da.SearchCursor(input_fc, field) as values:
             for value in values:
                 if value[0] is None:
                     value_set.add("")
@@ -150,32 +150,34 @@ def get_field_value_set(inputTable, field, charset='ascii'):
         output_msg(e.args[0])
 
 
-def get_tsv_field_info(table):
-    """ Create a tsv output of a table's fields and their properties
-        :param inputTable {String}:
+def get_field_info_as_text(input_fc, sep=r"\t"):
+    """ Create a separated output of a table's fields and their properties
+        :param input_fc {String}:
             Path or reference to feature class or table.
-        :return string of tsv values
+        :param sep {String}
+            Separator value to use. eg r"\t" for tab (default), "," for comma
+        :return string of values with separator between
     """
     atts = ['name', 'aliasName', 'type', 'baseName', 'domain',
             'editable', 'isNullable', 'length', 'precision',
             'required', 'scale',]
 
-    str_output = "\t".join(["{}".format(i) for i in atts])
+    str_output = sep.join(["{}".format(i) for i in atts])
     str_output += "\n"
-    for f in arcpy.ListFields(table):
-        str_output += "\t".join(["{}".format(getattr(f, i)) for i in atts])
+    for f in arcpy.ListFields(input_fc):
+        str_output += sep.join(["{}".format(getattr(f, i)) for i in atts])
         str_output += "\n"
     return str_output
 
 
-def list_field_names(inputTable):
+def list_field_names(input_fc):
     """Return an array of field names given an input table.
-        :param inputTable{String}:
+        :param input_fc {String}:
             Path or reference to feature class or table.
         :return array of field names
     """
     f_list = []
-    for f in arcpy.ListFields(inputTable):
+    for f in arcpy.ListFields(input_fc):
         f_list.append(f.name)
 
     return f_list
@@ -209,26 +211,25 @@ def make_field_dict(input_fc, ignore_fields=None, skip_shape=True):
     return field_dict
 
 
-def compare_table_schemas(tbl1, tbl2):
+def compare_schemas(fc1, fc2):
     """compare the schemas of two tables. Return an array of results.
-
-    :param table1 {String}:
+    :param fc1 {String}:
             Path or reference to feature class or table.
-    :param table2 {String}:
+    :param fc2 {String}:
             Path or reference to feature class or table.
     :return array of results (field not found, field same, etc)
     """
     result_arr= []
-    field_dict1 = make_field_dict(tbl1)
-    field_dict2 = make_field_dict(tbl2)
+    field_dict1 = make_field_dict(fc1)
+    field_dict2 = make_field_dict(fc2)
     for ifield in sorted(list(set(field_dict1.keys()+field_dict2.keys()))):
         # check name for missing fields first
         if not (field_dict1.has_key(ifield)):
-            the_result = " {0} not found in {1}".format(ifield, tbl1)
+            the_result = " {0} not found in {1}".format(ifield, fc1)
             output_msg(the_result)
             result_arr.append(the_result)
         elif not (field_dict2.has_key(ifield)):
-            the_result = " {0} not found in {1}".format(ifield, tbl2)
+            the_result = " {0} not found in {1}".format(ifield, fc2)
             output_msg(the_result)
             result_arr.append(the_result)
         else:
@@ -242,14 +243,15 @@ def compare_table_schemas(tbl1, tbl2):
                 field_one_length = field_dict1[ifield][2]
                 field_two_length = field_dict2[ifield][2]
 
-                the_result = " {0} {1} {2} {3} does not exactly match {4} {5} {6} {7}".format(tbl1, ifield, field_one_type, field_one_length, tbl2, ifield, field_two_type, field_two_length)
+                the_result = " {0} {1} {2} {3} does not exactly match {4} {5} {6} {7}".format(
+                    fc1, ifield, field_one_type, field_one_length, fc2, ifield, field_two_type, field_two_length)
                 output_msg(the_result)
                 result_arr.append(the_result)
 
     return result_arr
 
 
-def report_fields_to_csv_schema(featureclass):
+def export_schema_to_csv(input_fc):
     """Create a csv schema report of all fields in a featureclass,
     to the base directory or user folder.
     :param featureclass {String}:
@@ -261,7 +263,7 @@ def report_fields_to_csv_schema(featureclass):
     start_time = datetime.datetime.today()
     start_date_string = start_time.strftime('%Y%m%d')
     default_env = arcpy.env.workspace
-    fc = featureclass
+    fc = input_fc
     # nice to convert reported types to types accepted by add field tool
     type_conversions = {"String": "TEXT", "Float": "FLOAT", "Double": "DOUBLE", "SmallInteger": "SHORT", "Integer": "LONG", "Date": "DATE", "Blob": "BLOB", "Ratser": "RASTER", "GUID": "GUID", "TRUE": "True", "FALSE": "False"}
 
@@ -279,6 +281,7 @@ def report_fields_to_csv_schema(featureclass):
         log_file_path = os.path.join(report_dir, log_file_name)
         output_msg("Report file: {0}".format(log_file_path))
         with open(log_file_path, "w") as logFile:
+            logFile.write()
             logFile.write(
                 "FieldName,FieldType,FieldPrecision,FieldScale,FieldLength,FieldAlias,isNullable,Required,"
                 "FieldDomain,DefaultValue,Editable,BaseName\n")
@@ -312,13 +315,16 @@ def report_fields_to_csv_schema(featureclass):
         arcpy.env.workspace = default_env
 
 
-def convert_csv_schema_to_table(csv_file, table_name):
+def import_schema_to_fc(csv_file, fc_name):
     """convert csv schema from report_fields_to_csv_schema
     to a featureclass"""
-    # load the csv file
-    # assume headers as per output from report_fields_to_csv_schema
+    # assume headers as per output from export_schema_to_csv
+    # get fc type from csv file line 1
+    # load the csv file from line 2 for field info
+    # get field list
     # ignore OBJECTID, SHAPE
     fields_to_ignore =["OBJECTID", "FID", "SHAPE", "SHAPE_AREA", "SHAPE.AREA", "SHAPE.STAREA()", "SHAPE_LENGTH", "SHAPE.LEN", "SHAPE.STLENGTH()"]
-    # create table from table_name
+    # create fc from fc_name
+    # add fields from field list
     # arcpy.AddField_management(in_table, field_name, field_type, {field_precision}, {field_scale}, {field_length}, {field_alias}, {field_is_nullable}, {field_is_required}, {field_domain})
     pass
