@@ -10,7 +10,7 @@ from arcutils.output import get_valid_output_path
 class TableObj(object):
     """ provide methods for working with a table/featureclass
     Usage: tbl = arcutils.table.TableObj(path)
-    attributes:
+    :param
         path: a string representing an table/featureclass
     """
     def __init__(self, table_path):
