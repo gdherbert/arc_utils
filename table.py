@@ -20,6 +20,7 @@ class TableObj(object):
         self.path = table_path
         self.type = self._get_fc_type()
         self.fields = self._list_field_names()
+        self.fields2 = self._list_field_names(False)
         self.field_dict = self._make_field_dict()
 
     def _get_fc_type(self):
@@ -31,12 +32,16 @@ class TableObj(object):
         else:
             return 'Unknown'
 
-    def _list_field_names(self):
+    def _list_field_names(self, all=True):
         """Array of field names
         """
         f_list = []
         for f in arcpy.ListFields(self.path):
-            f_list.append(f.name)
+            if all:
+                f_list.append(f.name)
+            else:  # do not return required fields
+                if not f.required:
+                    f_list.append(f.name)
         return f_list
 
     def _make_field_dict(self):
@@ -45,7 +50,13 @@ class TableObj(object):
         """
         field_dict = dict()
         for field in arcpy.ListFields(self.path):
-            field_dict[field.name] = {"name": field.name, "type": field.type, "length": field.length}
+            field_dict[field.name] = {
+                "name": field.name,
+                "alias": field.aliasName,
+                "type": field.type,
+                "length": field.length,
+                "required": field.required
+            }
         return field_dict
 
     def get_max_field_value_length(self, field):
@@ -179,43 +190,56 @@ def get_field_info_as_text(input_fc, sep=r"\t"):
     return str_output
 
 
-def list_field_names(input_fc):
+def list_field_names(input_fc, required=True):
     """Return an array of field names given an input table.
         :param input_fc {String}:
             Path or reference to feature class or table.
+        :param required {Bool}
+            If True, returns all fields, else only non required fields returned
         :return array of field names
     """
     f_list = []
     for f in arcpy.ListFields(input_fc):
-        f_list.append(f.name)
+        if required:
+            f_list.append(f.name)
+        else:
+            if f.required:
+                f_list.append(f.name)
     return f_list
 
 
-def make_field_dict(input_fc, ignore_fields=None, skip_shape=True):
+def make_field_dict(input_fc, ignore_fields=None, skip_required=False):
     """return a dictionary of fields containing name, type, length
     :param input_fc {String}:
             Path or reference to feature class or table.
     :param ignore_fields {Array}:
-            Array of strings containing field names to ignore. Default is None
-    :param skip_shape {Boolean}:
-            Boolean to skip shape fields or not; Default is True
+            Array of strings containing field names to ignore (case sensitive). Default is None
+    :param skip_required {Boolean}:
+            Boolean to skip required fields or not; Default is False
     :return dictionary of field name: attributes
     """
+    l_fields = arcpy.ListFields(input_fc)
+    field_dict = dict()
+
     if ignore_fields is None:
         fields_to_ignore = []
     else:
         fields_to_ignore = ignore_fields
 
-    if skip_shape:
-        fields_to_ignore.extend(
-            ["SHAPE", "SHAPE_AREA", "SHAPE.AREA", "SHAPE.STAREA()", "SHAPE_LENGTH", "SHAPE.LEN", "SHAPE.STLENGTH()"]
-        )
+    if skip_required:
+        for f in l_fields:
+            if f.required:
+                fields_to_ignore.append(f.name)
 
-    l_fields=arcpy.ListFields(input_fc)
-    field_dict = dict()
     for field in l_fields:
-        if field.name.upper() not in fields_to_ignore:
-            field_dict[field.name] = {"name": field.name, "type": field.type, "length": field.length}
+        if field.name not in fields_to_ignore:
+            field_dict[field.name] = {
+                "name": field.name,
+                "alias": field.aliasName,
+                "type": field.type,
+                "length": field.length,
+                "required": field.required
+            }
     return field_dict
 
 
@@ -273,7 +297,7 @@ def export_schema_to_csv(input_fc):
     default_env = arcpy.env.workspace
     fc = input_fc
     # nice to convert reported types to types accepted by add field tool
-    type_conversions = {"String": "TEXT", "Float": "FLOAT", "Double": "DOUBLE", "SmallInteger": "SHORT", "Integer": "LONG", "Date": "DATE", "Blob": "BLOB", "Ratser": "RASTER", "GUID": "GUID", "TRUE": "True", "FALSE": "False"}
+    type_conversions = {"String": "TEXT", "Float": "FLOAT", "Double": "DOUBLE", "SmallInteger": "SHORT", "Integer": "LONG", "Date": "DATE", "Blob": "BLOB", "Raster": "RASTER", "GUID": "GUID", "TRUE": "True", "FALSE": "False"}
 
     fc_type = 'Unknown'
     d = arcpy.Describe(fc)
