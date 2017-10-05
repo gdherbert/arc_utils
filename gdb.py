@@ -7,7 +7,7 @@ import os
 from arcutils.output import output_msg
 from arcutils.output import get_valid_output_path
 
-def report_all_fc_as_text(geodatabase, output_file=None, sep=r'\t'):
+def report_all_fc_as_text(geodatabase, output_file=None, sep='\t'):
     """Create a text report of all fields in all featureclasses/tables from a geodatabase
     to specified output file.
     :param geodatabase {String}:

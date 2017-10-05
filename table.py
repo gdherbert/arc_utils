@@ -170,7 +170,7 @@ def get_field_value_set(input_fc, field, charset='ascii'):
         output_msg(e.args[0])
 
 
-def get_field_info_as_text(input_fc, sep=r"\t"):
+def get_field_info_as_text(input_fc, sep="\t"):
     """ Create a separated output of a table's fields and their properties
         :param input_fc {String}:
             Path or reference to feature class or table.
