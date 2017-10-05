@@ -10,7 +10,7 @@ from arcutils.output import get_valid_output_path
 def report_all_fc_as_text(geodatabase, output_file=None, sep='\t'):
     """Create a text report of all fields in all featureclasses/tables from a geodatabase
     to specified output file.
-    :param geodatabase {String}:
+    :param geodatabase {String}
         Path or reference to a geodatabase.
     :param output_file {String}
         Path or reference to a text file. If not supplied defaults to gdb directory.
@@ -32,10 +32,11 @@ def report_all_fc_as_text(geodatabase, output_file=None, sep='\t'):
         datasets = [''] + datasets if datasets is not None else []
         # write out gdb info, fields etc
         with open(output_file, "w") as logFile:
-            header = ["Dataset","FeatureClass","name","aliasName","baseName","defaultValue","type","required","editable","isNullable","length","precision","scale","domain"]
-            atts = ['name', 'aliasName', 'type', 'baseName', 'domain',
+            header = ["FCDataset","Feature"]
+            atts = ['name', 'aliasName', 'baseName', 'type', 'domain',
                     'editable', 'isNullable', 'length', 'precision',
-                    'required', 'scale', ]
+                    'required', 'scale', 'defaultValue' ]
+            header.extend(atts)
             header_output = sep.join(["{}".format(i) for i in header])
             logFile.write(header_output + "\n")
             for tbl in arcpy.ListTables():
