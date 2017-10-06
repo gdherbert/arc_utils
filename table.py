@@ -178,9 +178,8 @@ def get_field_info_as_text(input_fc, sep="\t"):
             Separator value to use. eg r"\t" for tab (default), "," for comma
         :return string of values with separator between
     """
-    atts = ['name', 'aliasName', 'type', 'baseName', 'domain',
-            'editable', 'isNullable', 'length', 'precision',
-            'required', 'scale',]
+    atts = ['name', 'baseName', 'aliasName', 'type', 'length', 'precision', 'scale',
+            'domain', 'defaultValue', 'editable', 'isNullable', 'required']
 
     str_output = sep.join(["{}".format(i) for i in atts])
     str_output += "\n"

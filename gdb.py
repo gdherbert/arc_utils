@@ -33,9 +33,8 @@ def report_all_fc_as_text(geodatabase, output_file=None, sep='\t'):
         # write out gdb info, fields etc
         with open(output_file, "w") as logFile:
             header = ["FCDataset","Feature"]
-            atts = ['name', 'aliasName', 'baseName', 'type', 'domain',
-                    'editable', 'isNullable', 'length', 'precision',
-                    'required', 'scale', 'defaultValue' ]
+            atts = ['name', 'baseName', 'aliasName', 'type', 'length', 'precision', 'scale',
+                    'domain', 'defaultValue', 'editable', 'isNullable', 'required']
             header.extend(atts)
             header_output = sep.join(["{}".format(i) for i in header])
             logFile.write(header_output + "\n")
