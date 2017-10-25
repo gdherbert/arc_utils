@@ -10,7 +10,7 @@ from arcutils.output import get_valid_output_path
 class TableObj(object):
     """ provide methods for working with a table/featureclass
     Usage: tbl = arcutils.table.TableObj(path)
-    attributes:
+    :param
         path: a string representing an table/featureclass
     """
     def __init__(self, table_path):
@@ -18,57 +18,92 @@ class TableObj(object):
         adds methods
         """
         self.path = table_path
-        self.field_name_list = self.list_field_names(self.path)
-        self.upper_field_name_dict = self._make_field_dict(self.path)
+        self.type = self._get_fc_type()
+        self.fields = self._list_field_names()
+        self.fields2 = self._list_field_names(False)
+        self.field_dict = self._make_field_dict()
 
+    def _get_fc_type(self):
+        d = arcpy.Describe(self.path)
+        if hasattr(d, 'shapeType'):
+            return d.shapeType
+        elif hasattr(d, 'dataType'):
+            return d.dataType
+        else:
+            return 'Unknown'
 
-    def list_field_names(inputTable):
-        """Return an array of field names given an input table.
-
-            inputTable{String}:
-                Path or reference to feature class or table.
-            :return array of field names
+    def _list_field_names(self, all=True):
+        """Array of field names
         """
         f_list = []
-        for f in arcpy.ListFields(inputTable):
-            f_list.append(f.name)
-
+        for f in arcpy.ListFields(self.path):
+            if all:
+                f_list.append(f.name)
+            else:  # do not return required fields
+                if not f.required:
+                    f_list.append(f.name)
         return f_list
 
-
-    def make_field_dict(input_fc, ignore_fields=None, skip_shape=True):
-        """return a dictionary of fields containing name normalized to upper case, type, length with the option to skip shape fields
-
-        input_fc {String}:
-                Path or reference to feature class or table.
-        ignore_fields {Array}:
-                Array of strings containing field names to ignore. Default is None
-        skip_shape {Boolean}:
-                Boolean to skip shape fields or not; Default is True
-        :return dictionary of field name: attributes
+    def _make_field_dict(self):
+        """Dictionary of fields containing
+        name, type, length
         """
-        if ignore_fields is None:
-            fields_to_ignore = []
-        else:
-            fields_to_ignore = ignore_fields
-
-        if skip_shape:
-            fields_to_ignore.extend(["SHAPE", "SHAPE_AREA", "SHAPE.AREA", "SHAPE.STAREA()", "SHAPE_LENGTH", "SHAPE.LEN",
-                                     "SHAPE.STLENGTH()"])
-
-        l_fields = arcpy.ListFields(input_fc)
         field_dict = dict()
-        for field in l_fields:
-            if field.name.upper() not in fields_to_ignore:
-                # return all strings as UPPER CASE
-                field_dict[field.name.upper()] = [field.name, field.type.upper(), field.length]
+        for field in arcpy.ListFields(self.path):
+            field_dict[field.name] = {
+                "name": field.name,
+                "alias": field.aliasName,
+                "type": field.type,
+                "length": field.length,
+                "required": field.required
+            }
         return field_dict
 
+    def get_max_field_value_length(self, field):
+        """Length of the maximum value in the field.
+        """
+        length = 0
+        with arcpy.da.SearchCursor(self.path, field) as values:
+            for value in values:
+                if len(value[0]) > length:
+                    length = len(value[0])
+        return length
 
-def pprint_fields(table):
+    def get_field_value_set(self, field, charset='ascii'):
+        """Return set of unique field values
+            :param field {String}:
+                name of the field to parse
+            :param: charset {String}:
+                character set to use (default = 'ascii').
+                Valid values are those in the Python documentation for string encode.
+            :return set of unique values
+           """
+        try:
+            value_set = set()  # set to hold unique values
+            with arcpy.da.SearchCursor(self.path, field) as values:
+                for value in values:
+                    if value[0] is None:
+                        value_set.add("")
+                    elif isinstance(value[0], (str, unicode)):
+                        if charset != 'ascii':
+                            value_set.add(value[0])
+                        else:
+                            # if unicode strings are causing problem, try
+                            value_set.add(value[0].encode('ascii', 'ignore'))
+                    else:
+                        value_set.add(value[0])
+
+            return value_set
+
+        except arcpy.ExecuteError:
+            output_msg(arcpy.GetMessages(2))
+        except Exception as e:
+            output_msg(e.args[0])
+
+
+def pprint_fields(input_fc):
     """ pretty print a table's fields and their properties
-
-        inputTable {String}:
+        :param input_fc {String}:
             Path or reference to feature class or table.
     """
     def _print(l):
@@ -79,48 +114,42 @@ def pprint_fields(table):
             'required', 'scale',]
     _print(atts)
 
-    for f in arcpy.ListFields(table):
+    for f in arcpy.ListFields(input_fc):
         _print(["{:>12}".format(getattr(f, i)) for i in atts])
 
 
-def get_max_field_value_length(inputTable, field):
+def get_max_field_value_length(input_fc, field):
     """Return the length of the maximum value in the field.
-        inputTable {String}:
+        :param input_fc {String}:
             Path or reference to feature class or table.
-
-        field {String}:
+        :param field {String}:
             name of the field to parse
-
         :return integer
     """
     length = 0
-    with arcpy.da.SearchCursor(inputTable, field) as values:
+    with arcpy.da.SearchCursor(input_fc, field) as values:
             for value in values:
                 if len(value[0]) > length:
                     length = len(value[0])
     return length
 
 
-def get_field_value_set(inputTable, field, charset='ascii'):
+def get_field_value_set(input_fc, field, charset='ascii'):
     """Return a set of unique field values given an input table,
        a field name string and an optional charset (default='ascii')
        ascii charset will force encoding with ignore option.
-
-        inputTable {String}:
+        :param input_fc {String}:
             Path or reference to feature class or table.
-
-        field {String}:
+        :param field {String}:
             name of the field to parse
-
-        charset {String}:
+        :param charset {String}:
             character set to use (default = 'ascii').
             Valid values are those in the Python documentation for string encode.
         :return set of unique values
-       """
-
+    """
     try:
         value_set = set() # set to hold unique values
-        with arcpy.da.SearchCursor(inputTable, field) as values:
+        with arcpy.da.SearchCursor(input_fc, field) as values:
             for value in values:
                 if value[0] is None:
                     value_set.add("")
@@ -141,87 +170,97 @@ def get_field_value_set(inputTable, field, charset='ascii'):
         output_msg(e.args[0])
 
 
-def get_tsv_field_info(table):
-    """ Create a tsv output of a table's fields and their properties
-
-        inputTable {String}:
+def get_field_info_as_text(input_fc, sep="\t"):
+    """ Create a separated output of a table's fields and their properties
+        :param input_fc {String}:
             Path or reference to feature class or table.
-        return string of tsv values
+        :param sep {String}
+            Separator value to use. eg r"\t" for tab (default), "," for comma
+        :return string of values with separator between
     """
-    atts = ['name', 'aliasName', 'type', 'baseName', 'domain',
-            'editable', 'isNullable', 'length', 'precision',
-            'required', 'scale',]
+    atts = ['name', 'baseName', 'aliasName', 'type', 'length', 'precision', 'scale',
+            'domain', 'defaultValue', 'editable', 'isNullable', 'required']
 
-    str_output = "\t".join(["{}".format(i) for i in atts])
+    str_output = sep.join(["{}".format(i) for i in atts])
     str_output += "\n"
-    for f in arcpy.ListFields(table):
-        str_output += "\t".join(["{}".format(getattr(f, i)) for i in atts])
+    for f in arcpy.ListFields(input_fc):
+        str_output += sep.join(["{}".format(getattr(f, i)) for i in atts])
         str_output += "\n"
     return str_output
 
 
-def list_field_names(inputTable):
+def list_field_names(input_fc, required=True):
     """Return an array of field names given an input table.
-
-        inputTable{String}:
+        :param input_fc {String}:
             Path or reference to feature class or table.
+        :param required {Bool}
+            If True, returns all fields, else only non required fields returned
         :return array of field names
     """
     f_list = []
-    for f in arcpy.ListFields(inputTable):
-        f_list.append(f.name)
-
+    for f in arcpy.ListFields(input_fc):
+        if required:
+            f_list.append(f.name)
+        else:
+            if f.required:
+                f_list.append(f.name)
     return f_list
 
 
-def make_field_dict(input_fc, ignore_fields=None, skip_shape=True):
-    """return a dictionary of fields containing name normalized to upper case, type, length with the option to skip shape fields
-
-    input_fc {String}:
+def make_field_dict(input_fc, ignore_fields=None, skip_required=False):
+    """return a dictionary of fields containing name, type, length
+    :param input_fc {String}:
             Path or reference to feature class or table.
-    ignore_fields {Array}:
-            Array of strings containing field names to ignore. Default is None
-    skip_shape {Boolean}:
-            Boolean to skip shape fields or not; Default is True
+    :param ignore_fields {Array}:
+            Array of strings containing field names to ignore (case sensitive). Default is None
+    :param skip_required {Boolean}:
+            Boolean to skip required fields or not; Default is False
     :return dictionary of field name: attributes
     """
+    l_fields = arcpy.ListFields(input_fc)
+    field_dict = dict()
+
     if ignore_fields is None:
         fields_to_ignore = []
     else:
         fields_to_ignore = ignore_fields
 
-    if skip_shape:
-        fields_to_ignore.extend(["SHAPE", "SHAPE_AREA", "SHAPE.AREA", "SHAPE.STAREA()", "SHAPE_LENGTH", "SHAPE.LEN", "SHAPE.STLENGTH()"])
+    if skip_required:
+        for f in l_fields:
+            if f.required:
+                fields_to_ignore.append(f.name)
 
-    l_fields=arcpy.ListFields(input_fc)
-    field_dict = dict()
     for field in l_fields:
-        if field.name.upper() not in fields_to_ignore:
-            # return all strings as UPPER CASE
-            field_dict[field.name.upper()] = [field.name, field.type.upper(), field.length]
+        if field.name not in fields_to_ignore:
+            field_dict[field.name] = {
+                "name": field.name,
+                "alias": field.aliasName,
+                "type": field.type,
+                "length": field.length,
+                "required": field.required
+            }
     return field_dict
 
 
-def compare_table_schemas(tbl1, tbl2):
+def compare_schemas(fc1, fc2):
     """compare the schemas of two tables. Return an array of results.
-
-    table1 {String}:
+    :param fc1 {String}:
             Path or reference to feature class or table.
-    table2 {String}:
+    :param fc2 {String}:
             Path or reference to feature class or table.
     :return array of results (field not found, field same, etc)
     """
     result_arr= []
-    field_dict1 = make_field_dict(tbl1)
-    field_dict2 = make_field_dict(tbl2)
+    field_dict1 = make_field_dict(fc1)
+    field_dict2 = make_field_dict(fc2)
     for ifield in sorted(list(set(field_dict1.keys()+field_dict2.keys()))):
         # check name for missing fields first
         if not (field_dict1.has_key(ifield)):
-            the_result = " {0} not found in {1}".format(ifield, tbl1)
+            the_result = " {0} not found in {1}".format(ifield, fc1)
             output_msg(the_result)
             result_arr.append(the_result)
         elif not (field_dict2.has_key(ifield)):
-            the_result = " {0} not found in {1}".format(ifield, tbl2)
+            the_result = " {0} not found in {1}".format(ifield, fc2)
             output_msg(the_result)
             result_arr.append(the_result)
         else:
@@ -235,18 +274,18 @@ def compare_table_schemas(tbl1, tbl2):
                 field_one_length = field_dict1[ifield][2]
                 field_two_length = field_dict2[ifield][2]
 
-                the_result = " {0} {1} {2} {3} does not exactly match {4} {5} {6} {7}".format(tbl1, ifield, field_one_type, field_one_length, tbl2, ifield, field_two_type, field_two_length)
+                the_result = " {0} {1} {2} {3} does not exactly match {4} {5} {6} {7}".format(
+                    fc1, ifield, field_one_type, field_one_length, fc2, ifield, field_two_type, field_two_length)
                 output_msg(the_result)
                 result_arr.append(the_result)
 
     return result_arr
 
 
-def report_fields_to_csv_schema(featureclass):
+def export_schema_to_csv(input_fc):
     """Create a csv schema report of all fields in a featureclass,
     to the base directory or user folder.
-
-    featureclass {String}:
+    :param input_fc {String}:
         path or reference to a featureclass.
     """
     import datetime
@@ -255,9 +294,16 @@ def report_fields_to_csv_schema(featureclass):
     start_time = datetime.datetime.today()
     start_date_string = start_time.strftime('%Y%m%d')
     default_env = arcpy.env.workspace
-    fc = featureclass
+    fc = input_fc
     # nice to convert reported types to types accepted by add field tool
-    type_conversions = {"String": "TEXT", "Float": "FLOAT", "Double": "DOUBLE", "SmallInteger": "SHORT", "Integer": "LONG", "Date": "DATE", "Blob": "BLOB", "Ratser": "RASTER", "GUID": "GUID", "TRUE": "True", "FALSE": "False"}
+    type_conversions = {"String": "TEXT", "Float": "FLOAT", "Double": "DOUBLE", "SmallInteger": "SHORT", "Integer": "LONG", "Date": "DATE", "Blob": "BLOB", "Raster": "RASTER", "GUID": "GUID", "TRUE": "True", "FALSE": "False"}
+
+    fc_type = 'Unknown'
+    d = arcpy.Describe(fc)
+    if hasattr(d, 'shapeType'):
+        fc_type = d.shapeType
+    elif hasattr(d, 'dataType'):
+        fc_type = d.dataType
 
     try:
         output_msg("Processing: {}".format(fc))
@@ -273,15 +319,16 @@ def report_fields_to_csv_schema(featureclass):
         log_file_path = os.path.join(report_dir, log_file_name)
         output_msg("Report file: {0}".format(log_file_path))
         with open(log_file_path, "w") as logFile:
-            logFile.write("FieldName,FieldType,FieldPrecision,FieldScale,FieldLength,FieldAlias,isNullable,Required,FieldDomain,")
-            logFile.write("DefaultValue,Editable,BaseName")
-            logFile.write("\n")
+            logFile.write("Type,{}".format(fc_type))
+            logFile.write(
+                "FieldName,FieldType,FieldPrecision,FieldScale,FieldLength,FieldAlias,isNullable,Required,"
+                "FieldDomain,DefaultValue,Editable,BaseName\n")
 
             try:
                 fields = arcpy.ListFields(fc)
                 for field in fields:
                     output_msg("Writing {}".format(field.name))
-                    logFile.write('"{0}","{1}",{2},{3},{4},"{5}",{6},{7},"{8}",{9},{10},"{11}"\n'.format(
+                    logFile.write("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11}\n".format(
                         field.name,
                         type_conversions[field.type],
                         field.precision,
@@ -306,10 +353,16 @@ def report_fields_to_csv_schema(featureclass):
         arcpy.env.workspace = default_env
 
 
-def convert_csv_schema_to_table(csv_file, table_name):
-    # load the csv file
-    # assume headers
+def import_schema_to_fc(csv_file, fc_name):
+    """convert csv schema from report_fields_to_csv_schema
+    to a featureclass"""
+    # assume headers as per output from export_schema_to_csv
+    # get fc type from csv file line 1
+    # load the csv file from line 2 for field info
+    # get field list
     # ignore OBJECTID, SHAPE
     fields_to_ignore =["OBJECTID", "FID", "SHAPE", "SHAPE_AREA", "SHAPE.AREA", "SHAPE.STAREA()", "SHAPE_LENGTH", "SHAPE.LEN", "SHAPE.STLENGTH()"]
+    # create fc from fc_name
+    # add fields from field list
     # arcpy.AddField_management(in_table, field_name, field_type, {field_precision}, {field_scale}, {field_length}, {field_alias}, {field_is_nullable}, {field_is_required}, {field_domain})
     pass

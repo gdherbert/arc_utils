@@ -7,10 +7,8 @@ import arcpy
 class MxdObj(object):
     """ provide methods for working with a Arc Desktop mxd file
     all standard arcpy methods are available via .mxd
-
     Usage: mxd = arcutils.mxd.MxdObj(path)
-
-    attributes:
+    :param
         path: a string representing an mxd file, or "CURRENT" if used in ArcMap
     """
     def __init__(self, mxd_path):
@@ -18,51 +16,30 @@ class MxdObj(object):
         adds methods
         """
         self.mxd = arcpy.mapping.MapDocument(mxd_path)
-        self.layer_obj_array = self.get_layer_obj_as_array()
-        self.layer_names_array = self.get_layer_names_as_array()
+        self.layer_obj_array = self._get_layer_obj_as_array()
+        self.layer_names_array = self._get_layer_names_as_array()
 
-    def get_layer_obj_as_array(self):
+    def _get_layer_obj_as_array(self):
         """ :return array of layer objects"""
         layer_obj_array = []
         for layer in arcpy.mapping.ListLayers(self.mxd):
             layer_obj_array.append(layer)
         return layer_obj_array
 
-    def get_layer_obj_gen(self):
-        """ yields layer objects"""
-        for layer in arcpy.mapping.ListLayers(self.mxd):
-            yield layer
-
-    def get_layer_names_as_array(self):
+    def _get_layer_names_as_array(self):
         """ :return array of layer names"""
         lyr_name_array = []
         for lyr in self.get_layer_obj_as_array():
             lyr_name_array.append(lyr.name)
         return lyr_name_array
 
-    def get_layer_names_gen(self):
+    def layer_obj_generator(self):
+        """ yields layer objects"""
+        for layer in arcpy.mapping.ListLayers(self.mxd):
+            yield layer
+
+    def layer_names_generator(self):
         """ yields layer names"""
         for lyr in self.get_layer_names_as_array():
             yield lyr
 
-
-def mxd_from_path(mxd_path):
-    """ Create an mxd object from path
-        mxd_path{string}:
-            path to mxd file
-        :returns mxd object
-    """
-    mxd = arcpy.mapping.MapDocument(mxd_path)
-    return mxd
-
-def list_layers_in_mxd(mxd_path):
-    """ list layers in mxd from path
-        mxd_path{string}:
-            path to mxd file
-        :returns array of layer objects
-    """
-    mxd = mxd_from_path(mxd_path)
-    layer_list = []
-    for layer in arcpy.mapping.ListLayers(mxd):
-        layer_list.append(layer)
-    return layer_list
