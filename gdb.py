@@ -1,12 +1,13 @@
-from __future__ import print_function, unicode_literals, absolute_import
+# -*- coding: utf-8 -*-
 """utilities for working with geodatabases and reporting on geodatabase contents
 """
-
+from __future__ import print_function, unicode_literals, absolute_import
 import arcpy
 import os
 from arcutils.output import output_msg
 from arcutils.output import get_valid_output_path
 
+#TODO split into 3 - get all FC, create formatted string output, write to file. use io
 def report_all_fc_as_text(geodatabase, output_file=None, sep='\t'):
     """Create a text report of all fields in all featureclasses/tables from a geodatabase
     to specified output file.
@@ -78,41 +79,52 @@ def report_all_fc_as_text(geodatabase, output_file=None, sep='\t'):
         arcpy.env.workspace = default_env
         output_msg("Completed")
 
+def extract_domains(gdb, workspace):
+    """extract all domains to table"""
+    domains = arcpy.da.ListDomains(gdb)
+    for domain in domains:
+        dname = arcpy.ValidateTableName(domain.name, workspace)
+        dname = workspace + "\\" + dname
+        arcpy.DomainToTable_management(gdb, domain.name, dname, "codedValues", 'descrip')
 
-def export_all_domains_as_dbf(geodatabase, output_folder=None):
+def export_all_domains(geodatabase, workspace=None):
     """Output all the domains in a geodatabase
-    to dbf files in the geodatabase directory or user folder.
+    to tables in a workspace.
     :param geodatabase {String}:
         Path or reference to a geodatabase.
     :param output_folder {String}
-        optional path to output folder. If not supplied defaults to gdb folder
+        optional path to output folder. If not supplied defaults to gdb
     """
-    gdb = geodatabase
-    default_env = arcpy.env.workspace
     try:
-        desc = arcpy.Describe(gdb)
-        arcpy.env.workspace = gdb
-        domains = desc.domains
-        if not output_folder:
-            output_folder = get_valid_output_path(desc.Path)
-
+        if not workspace:
+            workspace = geodatabase
+        domains = arcpy.da.ListDomains(geodatabase)
         for domain in domains:
-            # export the domains to tables in the gdb
-            table = os.path.join(gdb, arcpy.ValidateTableName(domain, gdb))
-            try:
-                arcpy.DomainToTable_management(gdb, domain, table,
-                                               'field', 'description', '#')
-                # export the table to dbf
-                output_msg('Exporting {0} domain to dbf in {1}'.format(domain, output_folder))
-                arcpy.TableToDBASE_conversion(Input_Table=table, Output_Folder=output_folder)
-                # clean up the table
-                arcpy.Delete_management(table)
-            except Exception as e:
-                output_msg(arcpy.GetMessages())
-                continue
+            dname = arcpy.ValidateTableName(domain.name + '_domain', workspace)
+            output = os.path.join(workspace, dname)
+            output_msg('Exporting {0} domain to {1}'.format(domain.name, dname))
+            arcpy.DomainToTable_management(geodatabase, domain.name, output, "codedValues", 'description')
+
     except Exception as e:
         output_msg(str(e.args[0]))
         output_msg(arcpy.GetMessages())
     finally:
-        arcpy.env.workspace = default_env
+        output_msg("Completed")
+
+
+def import_tables_as_domains(tables, geodatabase):
+    """import tables as domains into geodatabase
+    :param tables {string}
+        path or array of paths
+    :param geodatabase
+        Path or reference to a geodatabase."""
+    try:
+        for table in tables:
+            desc = arcpy.Describe(table)
+            dname = desc.name.replace("_domain", "")
+            arcpy.TableToDomain_management(table, "codedValues", "description", geodatabase, dname)
+    except Exception as e:
+        output_msg(str(e.args[0]))
+        output_msg(arcpy.GetMessages())
+    finally:
         output_msg("Completed")

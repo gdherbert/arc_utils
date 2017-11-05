@@ -1,7 +1,7 @@
-from __future__ import print_function, unicode_literals, absolute_import
+# -*- coding: utf-8 -*-
 """utilities for working with tables, featureclasses and fields
 """
-
+from __future__ import print_function, unicode_literals, absolute_import
 import arcpy
 from arcutils.output import output_msg
 from arcutils.output import get_valid_output_path
