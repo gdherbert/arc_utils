@@ -76,14 +76,14 @@ class TableObj(object):
             :param: charset {String}:
                 character set to use (default = 'ascii').
                 Valid values are those in the Python documentation for string encode.
-            :return set of unique values
+            :return set of unique values. Null values are represented as '<Null>'
            """
         try:
             value_set = set()  # set to hold unique values
             with arcpy.da.SearchCursor(self.path, field) as values:
                 for value in values:
                     if value[0] is None:
-                        value_set.add("")
+                        value_set.add("<Null>")
                     elif isinstance(value[0], (str, unicode)):
                         if charset != 'ascii':
                             value_set.add(value[0])
@@ -145,14 +145,14 @@ def get_field_value_set(input_fc, field, charset='ascii'):
         :param charset {String}:
             character set to use (default = 'ascii').
             Valid values are those in the Python documentation for string encode.
-        :return set of unique values
+        :return set of unique values. Null values are represented as '<Null>'
     """
     try:
         value_set = set() # set to hold unique values
         with arcpy.da.SearchCursor(input_fc, field) as values:
             for value in values:
                 if value[0] is None:
-                    value_set.add("")
+                    value_set.add("<Null>")
                 elif isinstance(value[0], (str, unicode)):
                     if charset != 'ascii':
                         value_set.add(value[0])
