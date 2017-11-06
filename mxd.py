@@ -15,36 +15,32 @@ class MxdObj(object):
         """ sets up reference to mxd
         adds methods
         """
-        _layers = arcpy.mapping.ListLayers(self.mxd)
+        self.path = mxd_path
         self.mxd = arcpy.mapping.MapDocument(mxd_path)
         self.layer_names_array = self._get_layer_names_as_array()
         self.layer_obj_array = self._get_layer_obj_as_array()
 
     def _get_layer_obj_as_array(self):
         """ :return array of layer objects"""
-        global _layers
         layer_obj_array = []
-        for layer in _layers:
+        for layer in arcpy.mapping.ListLayers(self.mxd):
             layer_obj_array.append(layer)
         return layer_obj_array
 
     def _get_layer_names_as_array(self):
         """ :return array of layer names"""
-        global _layers
         lyr_name_array = []
-        for layer in _layers:
+        for layer in arcpy.mapping.ListLayers(self.mxd):
             lyr_name_array.append(layer.name)
         return lyr_name_array
 
     def layer_obj_generator(self):
         """ yields layer objects"""
-        global _layers
-        for layer in _layers:
+        for layer in arcpy.mapping.ListLayers(self.mxd):
             yield layer
 
     def layer_names_generator(self):
         """ yields layer names"""
-        global _layers
-        for lyr in _layers:
+        for lyr in arcpy.mapping.ListLayers(self.mxd):
             yield lyr
 
