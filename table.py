@@ -170,6 +170,17 @@ def get_field_value_set(input_fc, field, charset='ascii'):
         output_msg(e.args[0])
 
 
+#TODO add comparison between field values and domain values
+def compare_field_values_to_domain(input_fc, fieldname, domain):
+    """compare field values with domain values
+        :param input_fc {string}
+        :param fieldname {string}
+        :param domain {string}
+    """
+    field_values = get_field_value_set(input_fc, fieldname)
+    
+
+
 def get_field_info_as_text(input_fc, sep="\t"):
     """ Create a separated output of a table's fields and their properties
         :param input_fc {String}:
