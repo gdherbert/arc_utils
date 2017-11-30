@@ -314,11 +314,13 @@ def export_schema_to_csv(input_fc):
     """
     import datetime
     import os
+    import csv
 
     start_time = datetime.datetime.today()
     start_date_string = start_time.strftime('%Y%m%d')
     default_env = arcpy.env.workspace
     fc = input_fc
+    delimiter = ','
     # nice to convert reported types to types accepted by add field tool
     type_conversions = {"String": "TEXT", "Float": "FLOAT", "Double": "DOUBLE", "SmallInteger": "SHORT", "Integer": "LONG", "Date": "DATE", "Blob": "BLOB", "Raster": "RASTER", "GUID": "GUID", "TRUE": "True", "FALSE": "False"}
 
@@ -339,32 +341,36 @@ def export_schema_to_csv(input_fc):
 
         report_dir = get_valid_output_path(desc.Path)
 
-        log_file_name = desc.baseName + "_Field_Report " + start_date_string + ".csv"
-        log_file_path = os.path.join(report_dir, log_file_name)
-        output_msg("Report file: {0}".format(log_file_path))
-        with open(log_file_path, "w") as logFile:
-            logFile.write("Type,{}".format(fc_type))
-            logFile.write(
-                "FieldName,FieldType,FieldPrecision,FieldScale,FieldLength,FieldAlias,isNullable,Required,"
-                "FieldDomain,DefaultValue,Editable,BaseName\n")
+        output_file_name = desc.baseName + "_Field_Report " + start_date_string + ".csv"
+        output_file_path = os.path.join(report_dir, output_file_name)
+        output_msg("Report file: {0}".format(output_file_path))
+        with open(output_file_path, "w") as outfile:
+            csv_file = csv.writer(outfile, lineterminator='\n', delimiter = delimiter) #lineterminator='\n'
+            csv_file.writerow(['Type', fc_type])
+            csv_file.writerow(['FieldName','FieldType','FieldPrecision','FieldScale','FieldLength','FieldAlias','isNullable','Required','FieldDomain','DefaultValue','Editable','BaseName'])
+            #outfile.write("Type,{}".format(fc_type))
+            #outfile.write("FieldName,FieldType,FieldPrecision,FieldScale,FieldLength,FieldAlias,isNullable,Required,"FieldDomain,DefaultValue,Editable,BaseName\n")
 
             try:
                 fields = arcpy.ListFields(fc)
                 for field in fields:
                     output_msg("Writing {}".format(field.name))
-                    logFile.write("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11}\n".format(
-                        field.name,
-                        type_conversions[field.type],
-                        field.precision,
-                        field.scale,
-                        field.length,
-                        field.aliasName,
-                        type_conversions[field.isNullable],
-                        type_conversions[field.required],
-                        field.domain,
-                        field.defaultValue,
-                        type_conversions[field.editable],
-                        field.baseName))
+                    csv_file.writerow([field.name, type_conversions[field.type], field.precision, field.scale, field.length, field.aliasName, type_conversions[field.isNullable], type_conversions[field.required],  type_conversions[field.editable], field.baseName])
+                   # outfile.write("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11}\n".format(
+                   #      field.name,
+                   #      type_conversions[field.type],
+                   #      field.precision,
+                   #      field.scale,
+                   #      field.length,
+                   #      field.aliasName,
+                   #      type_conversions[field.isNullable],
+                   #      type_conversions[field.required],
+                   #      field.domain,
+                   #      field.defaultValue,
+                   #      type_conversions[field.editable],
+                   #      field.baseName))
+            except csv.Error as e:
+                output_msg(e, severity=2)
             except Exception as e:
                 output_msg(str(e.args[0]))
                 output_msg(arcpy.GetMessages())
