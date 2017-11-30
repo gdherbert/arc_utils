@@ -92,7 +92,6 @@ class TableObj(object):
                             value_set.add(value[0].encode('ascii', 'ignore'))
                     else:
                         value_set.add(value[0])
-
             return value_set
 
         except arcpy.ExecuteError:
@@ -132,6 +131,19 @@ def get_max_field_value_length(input_fc, field):
                 if len(value[0]) > length:
                     length = len(value[0])
     return length
+
+
+def get_field_value_set2(input_fc, fields):
+    # alternative for multiple fields - input fields as field array ['field1', 'field2']
+    import pandas
+    data = arcpy.da.TableToNumPyArray(input_fc, fields)
+    df = pandas.DataFrame(data)
+    df = df.drop_duplicates()
+    # create new col with concat values
+    # one example
+    df['result'] = df.Type.astype(str).cat(df.Material.astype(str), sep=':')
+    #return as a set
+    return set(df['result'])
 
 
 def get_field_value_set(input_fc, field, charset='ascii'):
