@@ -190,6 +190,7 @@ def compare_field_values_to_domain(input_fc, fieldname, domain):
         :param domain {string}
     """
     field_values = get_field_value_set(input_fc, fieldname)
+    pass
     
 
 
