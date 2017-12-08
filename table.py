@@ -133,19 +133,6 @@ def get_max_field_value_length(input_fc, field):
     return length
 
 
-def get_field_value_set2(input_fc, fields):
-    # alternative for multiple fields - input fields as field array ['field1', 'field2']
-    import pandas
-    data = arcpy.da.TableToNumPyArray(input_fc, fields)
-    df = pandas.DataFrame(data)
-    df = df.drop_duplicates()
-    # create new col with concat values
-    # one example
-    df['result'] = df.Type.astype(str).cat(df.Material.astype(str), sep=':')
-    #return as a set
-    return set(df['result'])
-
-
 def get_field_value_set(input_fc, field, charset='ascii'):
     """Return a set of unique field values given an input table,
        a field name string and an optional charset (default='ascii')
@@ -180,6 +167,27 @@ def get_field_value_set(input_fc, field, charset='ascii'):
         output_msg(arcpy.GetMessages(2))
     except Exception as e:
         output_msg(e.args[0])
+
+
+def get_multiple_field_value_set(input_fc, fields, sep=':'):
+    """return a set of unique field values for an input table
+    and any number of fields (values witll be concatenated)
+    param input fc {String}
+        Path or reference to feature class or table.
+    :param fields {array of String values}:
+        array of field names (['Field1', 'Field2'])
+    :param sep {String}:
+        character to use as a separator (default = ':'
+    """
+    import pandas
+    data = arcpy.da.TableToNumPyArray(input_fc, fields)
+    df = pandas.DataFrame(data)
+    df = df.drop_duplicates()
+    # concatenate values
+    # result = set(df.values.sum(axis=1))
+    result = df[fields].apply(sep.join, axis=1)
+    # return as a set
+    return result
 
 
 #TODO add comparison between field values and domain values
