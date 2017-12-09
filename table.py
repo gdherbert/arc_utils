@@ -92,7 +92,6 @@ class TableObj(object):
                             value_set.add(value[0].encode('ascii', 'ignore'))
                     else:
                         value_set.add(value[0])
-
             return value_set
 
         except arcpy.ExecuteError:
@@ -170,6 +169,27 @@ def get_field_value_set(input_fc, field, charset='ascii'):
         output_msg(e.args[0])
 
 
+def get_multiple_field_value_set(input_fc, fields, sep=':'):
+    """return a set of unique field values for an input table
+    and any number of fields (values witll be concatenated)
+    param input fc {String}
+        Path or reference to feature class or table.
+    :param fields {array of String values}:
+        array of field names (['Field1', 'Field2'])
+    :param sep {String}:
+        character to use as a separator (default = ':'
+    """
+    import pandas
+    data = arcpy.da.TableToNumPyArray(input_fc, fields)
+    df = pandas.DataFrame(data)
+    df = df.drop_duplicates()
+    # concatenate values
+    # result = set(df.values.sum(axis=1))
+    result = df[fields].apply(sep.join, axis=1)
+    # return as a set
+    return set(result)
+
+
 #TODO add comparison between field values and domain values
 def compare_field_values_to_domain(input_fc, fieldname, domain):
     """compare field values with domain values
@@ -178,6 +198,7 @@ def compare_field_values_to_domain(input_fc, fieldname, domain):
         :param domain {string}
     """
     field_values = get_field_value_set(input_fc, fieldname)
+    pass
     
 
 
@@ -301,11 +322,13 @@ def export_schema_to_csv(input_fc):
     """
     import datetime
     import os
+    import csv
 
     start_time = datetime.datetime.today()
     start_date_string = start_time.strftime('%Y%m%d')
     default_env = arcpy.env.workspace
     fc = input_fc
+    delimiter = ','
     # nice to convert reported types to types accepted by add field tool
     type_conversions = {"String": "TEXT", "Float": "FLOAT", "Double": "DOUBLE", "SmallInteger": "SHORT", "Integer": "LONG", "Date": "DATE", "Blob": "BLOB", "Raster": "RASTER", "GUID": "GUID", "TRUE": "True", "FALSE": "False"}
 
