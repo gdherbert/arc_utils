@@ -187,7 +187,7 @@ def get_multiple_field_value_set(input_fc, fields, sep=':'):
     # result = set(df.values.sum(axis=1))
     result = df[fields].apply(sep.join, axis=1)
     # return as a set
-    return result
+    return set(result)
 
 
 #TODO add comparison between field values and domain values
