@@ -171,8 +171,8 @@ def get_field_value_set(input_fc, field, charset='ascii'):
 
 def get_multiple_field_value_set(input_fc, fields, sep=':'):
     """return a set of unique field values for an input table
-    and any number of fields (values witll be concatenated)
-    param input fc {String}
+    and any number of fields (values will be concatenated with sep)
+    :param input fc {String}
         Path or reference to feature class or table.
     :param fields {array of String values}:
         array of field names (['Field1', 'Field2'])
@@ -182,10 +182,9 @@ def get_multiple_field_value_set(input_fc, fields, sep=':'):
     import pandas
     data = arcpy.da.TableToNumPyArray(input_fc, fields)
     df = pandas.DataFrame(data)
-    df = df.drop_duplicates()
+    pandas.DataFrame.drop_duplicates(df, inplace=True)
     # concatenate values
-    # result = set(df.values.sum(axis=1))
-    result = df[fields].apply(sep.join, axis=1)
+    result = df[fields].apply(lambda x: sep.join(x.dropna().astype(str)), axis=1) # all types
     # return as a set
     return set(result)
 
