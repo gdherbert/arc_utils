@@ -2,10 +2,13 @@
 """utilities for working with geodatabases and reporting on geodatabase contents
 """
 from __future__ import print_function, unicode_literals, absolute_import
-import arcpy
+
 import os
-from arcutils.output import output_msg
-from arcutils.output import get_valid_output_path
+
+import arcpy
+from arc_utils import get_valid_output_path
+from arc_utils import output_msg
+
 
 #TODO split into 3 - get all FC, create formatted string output, write to file. use io
 def report_all_fc_as_text(geodatabase, output_file=None, sep='\t'):

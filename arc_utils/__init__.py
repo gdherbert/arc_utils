@@ -6,9 +6,9 @@ __author__ = 'Grant Herbert'
 __all__ = ['gdb.py', 'table.py']
 
 import sys
-from arcutils import gdb
-from arcutils import table
+from arc_utils import gdb
+from arc_utils import table
 if sys.version_info.major == 3:
-    from arcutils import aprx
+    from arc_utils import aprx
 else:
-    from arcutils import mxd
+    from arc_utils import mxd

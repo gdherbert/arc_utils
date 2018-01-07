@@ -2,14 +2,15 @@
 """utilities for working with tables, featureclasses and fields
 """
 from __future__ import print_function, unicode_literals, absolute_import
+
 import arcpy
-from arcutils.output import output_msg
-from arcutils.output import get_valid_output_path
+from arc_utils import get_valid_output_path
+from arc_utils import output_msg
 
 
 class TableObj(object):
     """ provide methods for working with a table/featureclass
-    Usage: tbl = arcutils.table.TableObj(path)
+    Usage: tbl = arc_utils.table.TableObj(path)
     :param
         path: a string representing an table/featureclass
     """
@@ -35,6 +36,10 @@ class TableObj(object):
     def _list_field_names(self, all=True):
         """Array of field names
         """
+        ##if all:
+        ##    f_list = [field.name for field in arcpy.ListFields(self.path)]
+        ##else:
+        ##    f_list = [field.name for field in arcpy.ListFields(self.path) if not field.required]
         f_list = []
         for f in arcpy.ListFields(self.path):
             if all:
@@ -147,6 +152,7 @@ def get_field_value_set(input_fc, field, charset='ascii'):
         :return set of unique values. Null values are represented as '<Null>'
     """
     try:
+        ##value_set = sorted(set([r[0] for r in arcpy.da.SearchCursor(input_fc, field)]))
         value_set = set() # set to hold unique values
         with arcpy.da.SearchCursor(input_fc, field) as values:
             for value in values:
