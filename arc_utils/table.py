@@ -4,8 +4,8 @@
 from __future__ import print_function, unicode_literals, absolute_import
 
 import arcpy
-from arc_utils import get_valid_output_path
-from arc_utils import output_msg
+from .output import get_valid_output_path
+from .output import output_msg
 
 
 class TableObj(object):

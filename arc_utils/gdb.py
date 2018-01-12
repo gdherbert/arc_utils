@@ -6,8 +6,8 @@ from __future__ import print_function, unicode_literals, absolute_import
 import os
 
 import arcpy
-from arc_utils import get_valid_output_path
-from arc_utils import output_msg
+from .output import get_valid_output_path
+from .output import output_msg
 
 
 #TODO split into 3 - get all FC, create formatted string output, write to file. use io
