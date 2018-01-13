@@ -9,7 +9,7 @@ from .output import output_msg
 
 
 class TableObj(object):
-    """ provide methods for working with a table/featureclass
+    """ provide properties for working with a table/featureclass
     Usage: tbl = arc_utils.table.TableObj(path)
     :param
         path: a string representing an table/featureclass
@@ -21,7 +21,7 @@ class TableObj(object):
         self.path = table_path
         self.type = self._get_fc_type()
         self.fields = self._list_field_names()
-        self.fields2 = self._list_field_names(False)
+        self.fields2 = self._list_field_names(required=False)
         self.field_dict = self._make_field_dict()
 
     def _get_fc_type(self):
@@ -33,20 +33,13 @@ class TableObj(object):
         else:
             return 'Unknown'
 
-    def _list_field_names(self, all=True):
+    def _list_field_names(self, required=True):
         """Array of field names
         """
-        ##if all:
-        ##    f_list = [field.name for field in arcpy.ListFields(self.path)]
-        ##else:
-        ##    f_list = [field.name for field in arcpy.ListFields(self.path) if not field.required]
-        f_list = []
-        for f in arcpy.ListFields(self.path):
-            if all:
-                f_list.append(f.name)
-            else:  # do not return required fields
-                if not f.required:
-                    f_list.append(f.name)
+        if required:
+            f_list = [field.name for field in arcpy.ListFields(self.path)]
+        else:
+            f_list = [field.name for field in arcpy.ListFields(self.path) if not field.required]
         return f_list
 
     def _make_field_dict(self):
@@ -142,6 +135,7 @@ def get_field_value_set(input_fc, field, charset='ascii'):
     """Return a set of unique field values given an input table,
        a field name string and an optional charset (default='ascii')
        ascii charset will force encoding with ignore option.
+       Includes <Null> literal
         :param input_fc {String}:
             Path or reference to feature class or table.
         :param field {String}:
@@ -178,6 +172,7 @@ def get_field_value_set(input_fc, field, charset='ascii'):
 def get_multiple_field_value_set(input_fc, fields, sep=':'):
     """return a set of unique field values for an input table
     and any number of fields (values will be concatenated with sep)
+    Does not represent nulls
     :param input fc {String}
         Path or reference to feature class or table.
     :param fields {array of String values}:
@@ -185,6 +180,8 @@ def get_multiple_field_value_set(input_fc, fields, sep=':'):
     :param sep {String}:
         character to use as a separator (default = ':'
     """
+    if not isinstance(fields, list):
+        fields = [fields]
     import pandas
     data = arcpy.da.TableToNumPyArray(input_fc, fields)
     df = pandas.DataFrame(data)
@@ -195,16 +192,55 @@ def get_multiple_field_value_set(input_fc, fields, sep=':'):
     return set(result)
 
 
-#TODO add comparison between field values and domain values
-def compare_field_values_to_domain(input_fc, fieldname, domain):
+def compare_field_values_to_domain(input_fc, fieldname, gdb, domain_name):
     """compare field values with domain values
+        return a named tuple (matched = values in domain,
+        unmatched = values outside of domain
         :param input_fc {string}
+            Path or reference to feature class or table.
         :param fieldname {string}
-        :param domain {string}
+            Field name
+        :param gdb {string}
+            Geodatabase path
+        :param domain_name {string}
+            Domain name in gdb
     """
+    from collections import namedtuple
+    nt = namedtuple('Result', 'match unmatched')
     field_values = get_field_value_set(input_fc, fieldname)
-    pass
-    
+    domain_values = []
+    domain_type = None
+    field_in_domain = []
+    field_out_domain = []
+    domains = arcpy.da.ListDomains(gdb)
+    for domain in domains:
+        if domain.name == domain_name:
+            if domain.domainType == 'CodedValue':
+                domain_type = 'CodedValue'
+                coded_values = domain.codedValues
+                for code, descr in coded_values.items():
+                    domain_values.append(code)
+            elif domain.domainType == 'Range':
+                domain_type = 'Range'
+                domain_values.append(domain.range[0])
+                domain_values.append(domain.range[1])
+            break
+    if domain_type == 'Range':
+        #compare upper and lower bounds
+        for fv in field_values:
+            if fv < domain_values[0] or fv > domain_values[1]:
+                field_out_domain.append(fv)
+            else:
+                field_in_domain.append(fv)
+    else:
+        for value in field_values:
+            if value in domain_values:
+                field_in_domain.append(value)
+            else:
+                field_out_domain.append(value)
+
+    return nt(field_in_domain, field_out_domain)
+
 
 
 def get_field_info_as_text(input_fc, sep="\t"):
