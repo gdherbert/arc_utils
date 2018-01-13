@@ -24,7 +24,7 @@ setup(
 
         # Indicate who your project is intended for
         'Intended Audience :: Developers',
-        'Intended Audience :: End Users/Desktop','
+        'Intended Audience :: End Users/Desktop',
         'Programming Language :: Python',
         # Pick your license as you wish (should match "license" above)
         'License :: OSI Approved :: MIT License',
