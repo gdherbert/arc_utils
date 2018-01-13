@@ -12,20 +12,22 @@
 * Optionally, you can copy the folder to the site-packages in the ESRI python install directory, or add a .pth file to the site-packages folder pointing to the clone directory.
 
 To use the utilities:
-* in the python window in ArcMap/ArcCatalog/Pro 
-    `import arc_utils as au`
+* in the python window in ArcMap/ArcCatalog/Pro
+   ```python 
+   import arc_utils as au
+   ```
 * typing `au.` will now reveal the modules and functions available to you if you have autocomplete on
-* Dependencies: arcpy, csv
-* NOTE: arcpy changes for ArcGIS Pro (Python 3.x) include a name change: arcpy.mapping = arcpy.mp
+* Depends on arcpy (only available with Esri license)
+* NOTE: arcpy changes for ArcGIS Pro (Python 3.x) include a name change: arcpy.mapping = arcpy.mp as well as some function changes
 
 ### Example usage ###
 
 ```python
 import arc_utils as au
-tbl = au.table.TableObj(<path to featureclass)
+tbl = au.table.TableObj(path to featureclass)
 print(tbl.fields) # list all fields
 ```
 
 ### Contribution guidelines ###
 
-* Feel free to contribute, this is a starting point for various utilities that I think could be useful within Arc.
+* Contributions welcomed, this is a starting point for various utilities that I think could be useful within Arc.
