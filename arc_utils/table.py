@@ -341,11 +341,12 @@ def compare_schemas(fc1, fc2):
             if field_dict1[ifield] == field_dict2[ifield]:
                 the_result = " {0} field same in both".format(ifield)
                 output_msg(the_result)
+                result_arr.append(the_result)
             else:
-                field_one_type = field_dict1[ifield][1]
-                field_two_type = field_dict2[ifield][1]
-                field_one_length = field_dict1[ifield][2]
-                field_two_length = field_dict2[ifield][2]
+                field_one_type = field_dict1[ifield]['type']
+                field_two_type = field_dict2[ifield]['type']
+                field_one_length = field_dict1[ifield]['length']
+                field_two_length = field_dict2[ifield]['length']
 
                 the_result = " {0} {1} {2} {3} does not exactly match {4} {5} {6} {7}".format(
                     fc1, ifield, field_one_type, field_one_length, fc2, ifield, field_two_type, field_two_length)
