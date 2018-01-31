@@ -16,7 +16,7 @@ class TableObj(object):
     """
     def __init__(self, table_path):
         """ sets up reference to table
-        adds methods
+        adds properties and methods
         """
         self.path = table_path
         self.type = self._get_fc_type()
@@ -74,14 +74,14 @@ class TableObj(object):
             :param: charset {String}:
                 character set to use (default = 'ascii').
                 Valid values are those in the Python documentation for string encode.
-            :return set of unique values. Null values are represented as '<Null>'
+            :return set of unique values. Null values are represented as 'NULL'
            """
         try:
             value_set = set()  # set to hold unique values
             with arcpy.da.SearchCursor(self.path, field) as values:
                 for value in values:
                     if value[0] is None:
-                        value_set.add("<Null>")
+                        value_set.add("NULL")
                     elif isinstance(value[0], (str, unicode)):
                         if charset != 'ascii':
                             value_set.add(value[0])
@@ -96,6 +96,20 @@ class TableObj(object):
             output_msg(arcpy.GetMessages(2))
         except Exception as e:
             output_msg(e.args[0])
+
+        def pretty_print(self):
+            """ pretty print a table's fields and their properties
+            """
+            def _print(l):
+                print("".join(["{:>12}".format(i) for i in l]))
+
+            atts = ['name', 'aliasName', 'type', 'baseName', 'domain',
+                    'editable', 'isNullable', 'length', 'precision',
+                    'required', 'scale', ]
+            _print(atts)
+
+            for f in arcpy.ListFields(self.path):
+                _print(["{:>12}".format(getattr(f, i)) for i in atts])
 
 
 def pprint_fields(input_fc):
@@ -131,27 +145,21 @@ def get_max_field_value_length(input_fc, field):
     return length
 
 
-def get_field_value_set(input_fc, field, charset='ascii'):
-    """Return a set of unique field values given an input table,
-       a field name string and an optional charset (default='ascii')
-       ascii charset will force encoding with ignore option.
-       Includes <Null> literal
-        :param input_fc {String}:
-            Path or reference to feature class or table.
+def get_field_value_set(inputfc, field, charset='ascii'):
+    """Return set of unique field values
         :param field {String}:
             name of the field to parse
-        :param charset {String}:
+        :param: charset {String}:
             character set to use (default = 'ascii').
             Valid values are those in the Python documentation for string encode.
-        :return set of unique values. Null values are represented as '<Null>'
-    """
+        :return set of unique values. Null values are represented as 'NULL'
+       """
     try:
-        ##value_set = sorted(set([r[0] for r in arcpy.da.SearchCursor(input_fc, field)]))
-        value_set = set() # set to hold unique values
-        with arcpy.da.SearchCursor(input_fc, field) as values:
+        value_set = set()  # set to hold unique values
+        with arcpy.da.SearchCursor(inputfc, field) as values:
             for value in values:
                 if value[0] is None:
-                    value_set.add("<Null>")
+                    value_set.add("NULL")
                 elif isinstance(value[0], (str, unicode)):
                     if charset != 'ascii':
                         value_set.add(value[0])
@@ -160,7 +168,6 @@ def get_field_value_set(input_fc, field, charset='ascii'):
                         value_set.add(value[0].encode('ascii', 'ignore'))
                 else:
                     value_set.add(value[0])
-
         return value_set
 
     except arcpy.ExecuteError:
@@ -168,26 +175,30 @@ def get_field_value_set(input_fc, field, charset='ascii'):
     except Exception as e:
         output_msg(e.args[0])
 
-
 def get_multiple_field_value_set(input_fc, fields, sep=':'):
     """return a set of unique field values for an input table
     and any number of fields (values will be concatenated with sep)
-    Does not represent nulls
+    null values converted to 'NULL'
     :param input fc {String}
         Path or reference to feature class or table.
     :param fields {array of String values}:
-        array of field names (['Field1', 'Field2'])
+        single field name or an array of field names (['Field1', 'Field2'])
     :param sep {String}:
         character to use as a separator (default = ':'
     """
     if not isinstance(fields, list):
-        fields = [fields]
+        fieldslist = [fields]
+    else:
+        fieldslist = fields
     import pandas
-    data = arcpy.da.TableToNumPyArray(input_fc, fields)
+    data = arcpy.da.TableToNumPyArray(input_fc, fieldslist, null_value='NULL')
     df = pandas.DataFrame(data)
     pandas.DataFrame.drop_duplicates(df, inplace=True)
     # concatenate values
-    result = df[fields].apply(lambda x: sep.join(x.dropna().astype(str)), axis=1) # all types
+    if len(fieldslist) > 1:
+        result = df[fieldslist].apply(lambda x: sep.join(x.dropna().astype(str)), axis=1) # all types
+    else:
+        result = df.values.flatten()
     # return as a set
     return set(result)
 
@@ -365,7 +376,7 @@ def export_schema_to_csv(input_fc):
     import datetime
     import os
     import csv
-
+    # TODO convert to use csv
     start_time = datetime.datetime.today()
     start_date_string = start_time.strftime('%Y%m%d')
     default_env = arcpy.env.workspace
