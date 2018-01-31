@@ -82,13 +82,6 @@ def report_all_fc_as_text(geodatabase, output_file=None, sep='\t'):
         arcpy.env.workspace = default_env
         output_msg("Completed")
 
-def extract_domains(gdb, workspace):
-    """extract all domains to table"""
-    domains = arcpy.da.ListDomains(gdb)
-    for domain in domains:
-        dname = arcpy.ValidateTableName(domain.name, workspace)
-        dname = workspace + "\\" + dname
-        arcpy.DomainToTable_management(gdb, domain.name, dname, "codedValues", 'descrip')
 
 def export_all_domains(geodatabase, workspace=None):
     """Output all the domains in a geodatabase
