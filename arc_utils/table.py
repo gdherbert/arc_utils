@@ -63,8 +63,9 @@ class TableObj(object):
         length = 0
         with arcpy.da.SearchCursor(self.path, field) as values:
             for value in values:
-                if len(value[0]) > length:
-                    length = len(value[0])
+                if value[0] is not None:
+                    if len(value[0]) > length:
+                        length = len(value[0])
         return length
 
     def get_field_value_set(self, field, charset='ascii'):
@@ -140,8 +141,9 @@ def get_max_field_value_length(input_fc, field):
     length = 0
     with arcpy.da.SearchCursor(input_fc, field) as values:
             for value in values:
-                if len(value[0]) > length:
-                    length = len(value[0])
+                if value[0] is not None:
+                    if len(value[0]) > length:
+                        length = len(value[0])
     return length
 
 
