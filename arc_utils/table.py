@@ -98,19 +98,19 @@ class TableObj(object):
         except Exception as e:
             output_msg(e.args[0])
 
-        def pretty_print(self):
-            """ pretty print a table's fields and their properties
-            """
-            def _print(l):
-                print("".join(["{:>12}".format(i) for i in l]))
+    def pretty_print(self):
+        """ pretty print a table's fields and their properties
+        """
+        def _print(l):
+            print("".join(["{:>12}".format(i) for i in l]))
 
-            atts = ['name', 'aliasName', 'type', 'baseName', 'domain',
-                    'editable', 'isNullable', 'length', 'precision',
-                    'required', 'scale', ]
-            _print(atts)
+        atts = ['name', 'aliasName', 'type', 'baseName', 'domain',
+                'editable', 'isNullable', 'length', 'precision',
+                'required', 'scale', ]
+        _print(atts)
 
-            for f in arcpy.ListFields(self.path):
-                _print(["{:>12}".format(getattr(f, i)) for i in atts])
+        for f in arcpy.ListFields(self.path):
+            _print(["{:>12}".format(getattr(f, i)) for i in atts])
 
 
 def pprint_fields(input_fc):
