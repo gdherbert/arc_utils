@@ -9,14 +9,14 @@ def read(fname):
 
 setup(
     name='arc_utils',
-    version='0.6.6',
+    version='0.6.7',
     description="Python utilities for use with Esri ArcGIS Desktop software",
     long_description=read('README.md'),
     url='https://github.com/gdherbert/arc_utils',
     author='Grant Herbert',
     author_email='gdherbert@gmail.com',
     keywords='esri arcpy arcgis',
-    download_url = 'https://github.com/gdherbert/arc_utils/tree/0.6.6',
+    download_url = 'https://github.com/gdherbert/arc_utils/tree/0.6.7',
     classifiers=[
         #   4 - Beta
         #   5 - Production/Stable
