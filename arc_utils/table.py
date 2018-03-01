@@ -317,13 +317,10 @@ def list_field_names(input_fc, required=True):
             If True, returns all fields, else only non required fields returned
         :return array of field names
     """
-    f_list = []
-    for f in arcpy.ListFields(input_fc):
-        if required:
-            f_list.append(f.name)
-        else:
-            if f.required:
-                f_list.append(f.name)
+    if required:
+        f_list = [field.name for field in arcpy.ListFields(input_fc)]
+    else:
+        f_list = [field.name for field in arcpy.ListFields(input_fc) if not field.required]
     return f_list
 
 
