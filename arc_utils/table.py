@@ -57,6 +57,22 @@ class TableObj(object):
             }
         return field_dict
 
+    def get_max_field_value(self, field):
+        """Largest value in the field.
+        """
+        result = 0
+        with arcpy.da.SearchCursor(self.path, field) as values:
+            for value in values:
+                if value[0] is not None:
+                    val = value[0]
+                    if type(val) in ('str', 'unicode'):
+                        if len(val) > result:
+                            result = len(val)
+                    else:
+                        if val > result:
+                            result = val
+        return result
+
     def get_max_field_value_length(self, field):
         """Length of the maximum value in the field.
         """
@@ -64,8 +80,9 @@ class TableObj(object):
         with arcpy.da.SearchCursor(self.path, field) as values:
             for value in values:
                 if value[0] is not None:
-                    if len(value[0]) > length:
-                        length = len(value[0])
+                    val = str(value[0])
+                    if len(val) > length:
+                        length = len(val)
         return length
 
     def get_field_value_set(self, field, charset='ascii'):
@@ -130,22 +147,39 @@ def pprint_fields(input_fc):
         _print(["{:>12}".format(getattr(f, i)) for i in atts])
 
 
-def get_max_field_value_length(input_fc, field):
-    """Return the length of the maximum value in the field.
+def get_max_field_value(input_fc, field):
+    """Return either the longest string in the field,
+    or the largest number.
         :param input_fc {String}:
             Path or reference to feature class or table.
         :param field {String}:
             name of the field to parse
         :return integer
     """
-    length = 0
+    result = 0
     with arcpy.da.SearchCursor(input_fc, field) as values:
             for value in values:
                 if value[0] is not None:
-                    if len(value[0]) > length:
-                        length = len(value[0])
-    return length
+                    val = value[0]
+                    if type(val) in ('str', 'unicode'):
+                        if len(val) > result:
+                            result = len(val)
+                    else:
+                        if val > result:
+                            result = val
+    return result
 
+def get_max_field_value_length(input_fc, field):
+    """Length of the maximum value in the field.
+    """
+    length = 0
+    with arcpy.da.SearchCursor(input_fc, field) as values:
+        for value in values:
+            if value[0] is not None:
+                val = str(value[0])
+                if len(val) > length:
+                    length = len(val)
+    return length
 
 def get_field_value_set(inputfc, field, charset='ascii'):
     """Return set of unique field values
@@ -204,7 +238,7 @@ def get_multiple_field_value_set(input_fc, fields, sep=':'):
     # return as a set
     return set(result)
 
-
+#TODO - move to gdb module and import table get_field_value_set
 def compare_field_values_to_domain(input_fc, fieldname, gdb, domain_name):
     """compare field values with domain values
         return a named tuple (matched = values in domain,
