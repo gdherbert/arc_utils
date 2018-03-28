@@ -65,7 +65,7 @@ class TableObj(object):
             for value in values:
                 if value[0] is not None:
                     val = value[0]
-                    if type(val) in ('str', 'unicode'):
+                    if isinstance(val, (str, unicode))
                         if len(val) > result:
                             result = len(val)
                     else:
@@ -154,17 +154,22 @@ def get_max_field_value(input_fc, field):
             Path or reference to feature class or table.
         :param field {String}:
             name of the field to parse
-        :return integer
+        :return value of largest field entry
     """
-    result = 0
+    result = None
     with arcpy.da.SearchCursor(input_fc, field) as values:
             for value in values:
                 if value[0] is not None:
                     val = value[0]
-                    if type(val) in ('str', 'unicode'):
-                        if len(val) > result:
-                            result = len(val)
+                    if isinstance(val, (str, unicode)):
+                        # return longest string
+                        if result is None:
+                            result = ''
+                        if len(val) > len(result):
+                            result = val
                     else:
+                        if result is None:
+                            result = 0
                         if val > result:
                             result = val
     return result
