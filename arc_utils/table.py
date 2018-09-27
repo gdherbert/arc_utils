@@ -154,20 +154,25 @@ def pprint_fields(input_fc):
         _print(["{:>12}".format(getattr(f, i)) for i in atts])
 
 
-def get_max_field_value(input_fc, field):
+def get_max_field_value(input_fc, field, treatasfloat=False):
     """Return either the longest string in the field,
     or the largest number.
         :param input_fc {String}:
             Path or reference to feature class or table.
         :param field {String}:
             name of the field to parse
+        :param treatasfloat:
+            setting to treat the field as a float value (expects all numeric)
         :return value of largest field entry
     """
     result = None
     with arcpy.da.SearchCursor(input_fc, field) as values:
             for value in values:
                 if value[0] is not None:
-                    val = value[0]
+                    if treatasfloat:
+                        val = float(value[0])
+                    else:
+                        val = value[0]
                     if isinstance(val, (str, unicode)):
                         # return longest string
                         if result is None:
