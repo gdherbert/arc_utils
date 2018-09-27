@@ -12,6 +12,7 @@ setup(
     version='0.6.7',
     description="Python utilities for use with Esri ArcGIS Desktop software",
     long_description=read('README.md'),
+    long_description_content_type='text/markdown',
     url='https://github.com/gdherbert/arc_utils',
     author='Grant Herbert',
     author_email='gdherbert@gmail.com',

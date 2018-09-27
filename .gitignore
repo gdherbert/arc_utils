@@ -1,0 +1,8 @@
+*.~py
+*.pyc
+.vscode/
+dist/
+build/
+arc_utils.egg-info/
+tests/arc_utils_test.gdb/
+tests/old/arc_utils_test.gdb/
