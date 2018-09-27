@@ -368,10 +368,17 @@ def make_field_dict(input_fc, ignore_fields=None, skip_required=False):
         if field.name not in fields_to_ignore:
             field_dict[field.name] = {
                 "name": field.name,
-                "alias": field.aliasName,
+                "baseName": field.baseName,
+                "aliasName": field.aliasName,
                 "type": field.type,
                 "length": field.length,
-                "required": field.required
+                "required": field.required,
+                "domain": field.domain,
+                "defaultValue": field.defaultValue,
+                "precision": field.precision,
+                "scale": field.scale,
+                "isNullable": field.isNullable,
+                "editable": field.editable
             }
     return field_dict
 
