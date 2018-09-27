@@ -72,7 +72,7 @@ class TableObj(object):
             for value in values:
                 if value[0] is not None:
                     val = value[0]
-                    if isinstance(val, (str, unicode))
+                    if isinstance(val, (str, unicode)):
                         if len(val) > result:
                             result = len(val)
                     else:
