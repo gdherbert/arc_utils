@@ -44,16 +44,23 @@ class TableObj(object):
 
     def _make_field_dict(self):
         """Dictionary of fields containing
-        name, type, length
+        all properties exposed by the arcpy.ListFields tool
         """
         field_dict = dict()
         for field in arcpy.ListFields(self.path):
             field_dict[field.name] = {
                 "name": field.name,
-                "alias": field.aliasName,
+                "baseName": field.baseName,
+                "aliasName": field.aliasName,
                 "type": field.type,
                 "length": field.length,
-                "required": field.required
+                "required": field.required,
+                "domain": field.domain,
+                "defaultValue": field.defaultValue,
+                "precision": field.precision,
+                "scale": field.scale,
+                "isNullable": field.isNullable,
+                "editable": field.editable
             }
         return field_dict
 
