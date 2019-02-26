@@ -7,6 +7,7 @@ def test_tableobj_properties(testdata):
     print(testdata.gdb)
     print(testdata.fc)
     tbl = table.TableObj(testdata.fc)
+
     assert tbl.path == testdata.fc
     assert tbl.type == u'Point'
     assert tbl.fields == [u'OBJECTID', u'Shape', u'ftext', u'fint']
@@ -20,6 +21,7 @@ def test_tableobj_methods(testdata):
     # test table object methods
     tbl = table.TableObj(testdata.fc)
     ftext_set = tbl.get_field_value_set('ftext')
+
     assert isinstance(ftext_set, set)
     assert sorted(ftext_set) == [u'NULL', 'val1', 'val2']
     assert tbl.get_max_field_value('ftext') == 'val2'
