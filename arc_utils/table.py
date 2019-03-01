@@ -65,7 +65,7 @@ class TableObj(object):
         return field_dict
 
     def get_max_field_value(self, field):
-        """Largest value in the field.
+        """Largest (or longest) value in the field.
         """
         result = 0
         with arcpy.da.SearchCursor(self.path, field) as values:
@@ -73,8 +73,8 @@ class TableObj(object):
                 if value[0] is not None:
                     val = value[0]
                     if isinstance(val, (str, unicode)):
-                        if len(val) > result:
-                            result = len(val)
+                        if len(val) > len(result):
+                            result = val
                     else:
                         if val > result:
                             result = val
@@ -121,6 +121,39 @@ class TableObj(object):
             output_msg(arcpy.GetMessages(2))
         except Exception as e:
             output_msg(e.args[0])
+
+
+    def find_duplicate_field_values(self, field, charset='ascii'):
+        """Return set of unique field values
+            :param field {String}:
+                name of the field to parse
+            :param: charset {String}:
+                character set to use (default = 'ascii').
+                Valid values are those in the Python documentation for string encode.
+            :return set of values which are duplicated in the field (ignores Null values).
+           """
+        try:
+            dup_set = set()  # set to hold duplicate values
+            value_set = set()  # set to hold unique values
+            with arcpy.da.SearchCursor(self.path, field) as values:
+                for value in values:
+                    if value[0] in value_set:
+                        dup_set.add(value[0])
+                    if isinstance(value[0], (str, unicode)):
+                        if charset != 'ascii':
+                            value_set.add(value[0])
+                        else:
+                            # if unicode strings are causing problem, try
+                            value_set.add(value[0].encode('ascii', 'ignore'))
+                    else:
+                        value_set.add(value[0])
+            return dup_set
+
+        except arcpy.ExecuteError:
+            output_msg(arcpy.GetMessages(2))
+        except Exception as e:
+            output_msg(e.args[0])
+
 
     def pretty_print(self):
         """ pretty print a table's fields and their properties
