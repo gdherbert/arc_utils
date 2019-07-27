@@ -10,11 +10,12 @@ testfolder = 'tests'
 @pytest.fixture(scope='module')
 def testdata(pytestconfig):
     gdb = "arc_utils_test.gdb"
-    fc_name = 'test_fc'
-    print('folder {}, gdb {}, fc {}'.format(testfolder, gdb, fc_name))
-    result = collections.namedtuple('testdata', 'gdb, fc')
+    fc_names = ['test_fc', 'test_fc2']
+    print('folder {}, gdb {}, fc {}'.format(testfolder, gdb, fc_names))
+    result = collections.namedtuple('testdata', 'gdb, fc1, fc2')
     result.gdb = str(pytestconfig.rootdir.join(testfolder).join(gdb))
-    result.fc = str(pytestconfig.rootdir.join(testfolder).join(gdb).join(fc_name))
+    result.fc1 = str(pytestconfig.rootdir.join(testfolder).join(gdb).join(fc_names[0]))
+    result.fc2 = str(pytestconfig.rootdir.join(testfolder).join(gdb).join(fc_names[1]))
     print(result)
     return result
 
@@ -50,26 +51,31 @@ def testdata2(request):
     for code in ftextDict:
         arcpy.AddCodedValueToDomain_management(testgdbpath, ftext_dom_name, code, ftextDict[code])
     arcpy.SetValueForRangeDomain_management(testgdbpath, fint_dom_name, 1, 12)
-    print("Creating test featureclass")
+    print("Creating test featureclasses")
     sr = arcpy.SpatialReference(4326)
-    fc_name = 'test_fc'
+    fc_names = ['test_fc', 'test_fc2']
+    fc_paths = []
     fc_fields = (('ftext', 'TEXT', None, None, 20, '', 'NULLABLE', 'NON_REQUIRED', ftext_dom_name),
                  ('fint', 'SHORT', 0, 0, 0, '', 'NULLABLE', 'NON_REQUIRED', fint_dom_name))
-    arcpy.CreateFeatureclass_management(testgdbpath, fc_name, "POINT", spatial_reference=sr)
-    fc = os.path.join(testgdbpath, fc_name)
-    for fc_field in fc_fields:
-        arcpy.AddField_management(fc, *fc_field)
-    print("loading data")
-    records = (("val1", None),("val1", 4), ("val1", 4), ("val2", 7), ("val2", 7), ("val1", 10), ("val2", 5), ("val1", 10), ("val2", 5), ("val1", None), (None, 5))
-    with arcpy.da.InsertCursor(fc, ["ftext", "fint", "SHAPE@XY"]) as cursor:
-        for key, val in records:
-            lon = -122.3 + float(random.randint(-9, 9)) / 100
-            lat = 47.6 + float(random.randint(-9, 9)) / 100
-            cursor.insertRow([key, val, (lon, lat)])
 
-    result = collections.namedtuple('testdata', 'gdb, fc')
+    for name in fc_names:
+        arcpy.CreateFeatureclass_management(testgdbpath, name, "POINT", spatial_reference=sr)
+        fc = os.path.join(testgdbpath, name)
+        fc_paths.append(fc)
+        for fc_field in fc_fields:
+            arcpy.AddField_management(fc, *fc_field)
+        print("loading data")
+        records = (("val1", None),("val1", 4), ("val1", 4), ("val2", 7), ("val02", 7), ("val1", 10), ("val2", 5), ("val1", 10), ("val2", 5), ("val1", None), (None, 5))
+        with arcpy.da.InsertCursor(fc, ["ftext", "fint", "SHAPE@XY"]) as cursor:
+            for key, val in records:
+                lon = -122.3 + float(random.randint(-9, 9)) / 100
+                lat = 47.6 + float(random.randint(-9, 9)) / 100
+                cursor.insertRow([key, val, (lon, lat)])
+
+    result = collections.namedtuple('testdata', 'gdb, fc1, fc2')
     result.gdb = testgdbpath
-    result.fc = fc
+    result.fc1 = fc_paths[0]
+    result.fc2 = fc_paths[1]
 
     def testdata_teardown():
         print('Deleting test geodatabase')
