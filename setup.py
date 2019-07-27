@@ -17,7 +17,7 @@ setup(
     author='Grant Herbert',
     author_email='gdherbert@gmail.com',
     keywords='esri arcpy arcgis',
-    download_url = 'https://github.com/gdherbert/arc_utils/tree/0.6.7',
+    download_url = 'https://github.com/gdherbert/arc_utils/tree/0.6.8',
     classifiers=[
         #   4 - Beta
         #   5 - Production/Stable
