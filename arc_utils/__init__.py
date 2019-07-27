@@ -1,6 +1,6 @@
 """A collection of python utilities for ArcGIS Desktop and ArcGIS Pro
 """
-__version__ = '0.6.6'
+__version__ = '0.6.8'
 __author__ = 'Grant Herbert'
 
 __all__ = ['gdb.py', 'table.py']
