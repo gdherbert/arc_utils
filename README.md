@@ -22,12 +22,11 @@ To use the utilities:
 
 ### Example usage ###
 
-```python
-import arc_utils as au
-tbl = au.table.TableObj(path to featureclass)
-print(tbl.fields) # list all fields
-```
-
+    import arc_utils as au
+    tbl = au.table.TableObj(path to featureclass)
+    # list all fields
+    print(tbl.fields)
+    
 ### Contribution guidelines ###
 
-* Contributions welcomed, this is a starting point for various utilities that I think could be useful within Arc.
+Contributions welcomed, this is a starting point for various utilities that I think could be useful within Arc.
