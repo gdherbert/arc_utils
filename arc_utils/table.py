@@ -246,20 +246,20 @@ class TableObj(object):
                     "FieldDomain,DefaultValue,Editable,BaseName\n")
 
                 for field in self.field_dict:
-                    output_msg("Writing {}".format(field.name))
+                    output_msg("Writing {}".format(field['name']))
                     logFile.write("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11}\n".format(
-                        field.name,
-                        type_conversions[field.type],
-                        field.precision,
-                        field.scale,
-                        field.length,
-                        field.aliasName,
-                        type_conversions[field.isNullable],
-                        type_conversions[field.required],
-                        field.domain,
-                        field.defaultValue,
-                        type_conversions[field.editable],
-                        field.baseName)
+                        field['name'],
+                        type_conversions[field['type']],
+                        field['precision'],
+                        field['scale'],
+                        field['length'],
+                        field['aliasName'],
+                        type_conversions[field['isNullable']],
+                        type_conversions[field['required']],
+                        field['domain'],
+                        field['defaultValue'],
+                        type_conversions[field['editable']],
+                        field['baseName'])
                     )
 
             return out_file_path
