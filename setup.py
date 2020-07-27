@@ -9,7 +9,7 @@ def read(fname):
 
 setup(
     name='arc_utils',
-    version='0.7',
+    version='0.8',
     description="Python utilities for use with Esri ArcGIS Desktop software",
     long_description=read('README.md'),
     long_description_content_type='text/markdown',
