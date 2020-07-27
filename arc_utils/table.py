@@ -264,7 +264,7 @@ class TableObj(object):
 
             return out_file_path
         except Exception as e:
-            output_msg(str(e.args[0]))
+            output_msg("error: " + str(e.args[0]))
             output_msg(arcpy.GetMessages())
 
     def compare_field_values_to_domain(self, field, gdb, domain_name):
