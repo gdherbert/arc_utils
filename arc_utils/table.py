@@ -228,7 +228,7 @@ class TableObj(object):
         # nice to convert reported types to types accepted by add field tool
         type_conversions = {"String": "TEXT", "Float": "FLOAT", "Double": "DOUBLE", "SmallInteger": "SHORT",
                             "Integer": "LONG", "Date": "DATE", "Blob": "BLOB", "Raster": "RASTER", "GUID": "GUID",
-                            "TRUE": "True", "FALSE": "False"}
+                            "TRUE": "True", "FALSE": "False", "Geometry": "GEOMETRY", "OID": "OID"}
 
         output_msg("Processing: {}".format(self.path))
 
