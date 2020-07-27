@@ -240,7 +240,7 @@ class TableObj(object):
             out_file_path = os.path.join(report_dir, out_file_name)
             output_msg("Report file: {0}".format(out_file_path))
             with open(out_file_path, "w") as logFile:
-                logFile.write("Type,{}".format(fc_type))
+                #logFile.write("Type,{}\n".format(fc_type))
                 logFile.write(
                     "FieldName,FieldType,FieldPrecision,FieldScale,FieldLength,FieldAlias,isNullable,Required,"
                     "FieldDomain,DefaultValue,Editable,BaseName\n")
