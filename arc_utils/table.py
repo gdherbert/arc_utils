@@ -2,7 +2,7 @@
 """utilities for working with tables, featureclasses and fields
 """
 from __future__ import print_function, unicode_literals, absolute_import
-
+import six
 import arcpy
 from .output import get_valid_output_path
 from .output import output_msg
@@ -141,7 +141,7 @@ class TableObj(object):
                 for value in values:
                     if value[0] is None:
                         value_set.add("NULL")
-                    elif isinstance(value[0], (str, unicode)):
+                    elif isinstance(value[0], six.string_types):
                         if charset != 'ascii':
                             value_set.add(value[0])
                         else:
@@ -197,7 +197,7 @@ class TableObj(object):
                 for value in values:
                     if value[0] in value_set:
                         dup_set.add(value[0])
-                    if isinstance(value[0], (str, unicode)):
+                    if isinstance(value[0], six.string_types):
                         if charset != 'ascii':
                             value_set.add(value[0])
                         else:
@@ -348,7 +348,7 @@ def get_max_field_value(input_fc, field, treatasfloat=False):
                         val = float(value[0])
                     else:
                         val = value[0]
-                    if isinstance(val, (str, unicode)):
+                    if isinstance(val, six.string_types):
                         # return longest string
                         if result is None:
                             result = ''
