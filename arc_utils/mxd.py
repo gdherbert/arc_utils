@@ -42,5 +42,5 @@ class MxdObj(object):
     def layer_names_generator(self):
         """ yields layer names"""
         for layer in arcpy.mapping.ListLayers(self.mxd):
-            yield layer
+            yield layer.name
 
