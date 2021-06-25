@@ -14,18 +14,20 @@ from .output import output_msg
 def report_all_fc_as_text(geodatabase, output_file=None, sep='\t'):
     """Create a text report of all fields in all featureclasses/tables from a geodatabase
     to specified output file.
+
     :param geodatabase {String}
         Path or reference to a geodatabase.
+    
     :param output_file {String}
         Path or reference to a text file. If not supplied defaults to gdb directory.
+    
     :param sep {String}
         seperator value (eg ',' or r'\t'
     """
-    gdb = geodatabase
     default_env = arcpy.env.workspace
     try:
-        desc = arcpy.Describe(gdb)
-        arcpy.env.workspace = gdb
+        desc = arcpy.Describe(geodatabase)
+        arcpy.env.workspace = geodatabase
         if not output_file:
             path = get_valid_output_path(desc.Path)
             output_file = os.path.join(path, desc.name.split(".")[0] + ".txt")
@@ -86,10 +88,12 @@ def report_all_fc_as_text(geodatabase, output_file=None, sep='\t'):
 def export_all_domains(geodatabase, workspace=None):
     """Output all the domains in a geodatabase
     to tables in a workspace.
+
     :param geodatabase {String}:
-        Path or reference to a geodatabase.
-    :param output_folder {String}
-        optional path to output folder. If not supplied defaults to gdb
+        Path or reference to input geodatabase.
+    
+    :param workspace {String}: Optional
+        Path to output folder or geodatabase. Defaults to input geodatabase.
     """
     try:
         if not workspace:
@@ -111,11 +115,13 @@ def export_all_domains(geodatabase, workspace=None):
 
 
 def import_tables_as_domains(tables, geodatabase):
-    """import tables as domains into geodatabase
+    """import tables as domains into geodatabase. Expects fields 'codedValues' and 'description'
+    
     :param tables {string}
-        path or array of paths
+        path or array of paths of input tables containing domain data
+    
     :param geodatabase
-        Path or reference to a geodatabase."""
+        Path or reference to geodatabase."""
     try:
         for table in tables:
             desc = arcpy.Describe(table)
