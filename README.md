@@ -2,7 +2,8 @@
 
 
 ### What is this repository for? ###
-* A collection of (mostly) arcpy related utilities for use within ArcGIS (ArcCatalog/ArcMap) and Python 2.7. Going forward, this repo will be compatible with ArcGIS Pro (Python 3) as well where possible.
+* A collection of (mostly) arcpy related utilities for use within ArcGIS Desktop (Python 2.7), or ArcGIS Pro (Python 3) as well where possible.
+Shortcuts for accessing elements of a map document, performing various data discovery tasks on a table or gdb
 
 ### How do I get set up? ###
 
@@ -18,7 +19,6 @@ To use the utilities:
    ```
 * typing `au.` will now reveal the modules and functions available to you if you have autocomplete on
 * Depends on arcpy (only available with Esri license)
-* NOTE: arcpy changes for ArcGIS Pro (Python 3.x) include a name change: arcpy.mapping = arcpy.mp as well as some function changes
 
 ### Example usage ###
 
@@ -26,6 +26,13 @@ To use the utilities:
     tbl = au.table.TableObj(path to featureclass)
     # list all fields
     print(tbl.fields)
+
+    mxd_doc = au.mxd.MxdObj("CURRENT")
+    mxd_doc.layer_names_array >> ['layer1','layer2']
+
+    pro_doc = au.aprx.AprxObj("CURRENT")
+    pro_doc.maps >> [<arcpy._mp.Map object at 0x000001A4AECBF108>, <arcpy._mp.Map object at 0x000001A4AEBB6608>]
+    pro_doc.maps[0].name >> 'Map'
     
 ### Contribution guidelines ###
 
