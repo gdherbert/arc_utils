@@ -2,12 +2,41 @@
 """utilities for working with geodatabases and reporting on geodatabase contents
 """
 from __future__ import print_function, unicode_literals, absolute_import
-
 import os
-
 import arcpy
 from .output import get_valid_output_path
 from .output import output_msg
+
+class GDBObj(object):
+    """ provide properties for working with a GDB
+    Usage: gdb = arc_utils.gdb.GDBObj(path)
+    :param
+        path: a string representing a GDB connection/path
+    """
+    def __init__(self, gdb_path):
+        """ sets up reference to table
+        adds properties and methods
+        """
+        self.path = gdb_path
+        self.describe_obj = self._describe_object()
+        self.feature_classes = self.get_feature_class_names()
+
+    def _describe_object(self):
+        """ returns describe object"""
+        return arcpy.Describe(self.path)
+    
+    def get_feature_class_names(self):
+        """ get a list of all the featureclass names"""
+        fc_list = []
+        temp_ws = arcpy.env.workspace
+        arcpy.env.workspace = self.path
+        datasets = arcpy.ListDatasets(feature_type='feature')
+        datasets = [''] + datasets if datasets is not None else []
+        for dataset in datasets:
+            for fc in arcpy.ListFeatureClasses(feature_dataset=dataset):
+                fc_list.append(fc)
+        arcpy.env.workspace = temp_ws
+        return fc_list
 
 
 #TODO split into 3 - get all FC, create formatted string output, write to file. use io
