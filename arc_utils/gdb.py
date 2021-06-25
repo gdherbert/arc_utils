@@ -98,6 +98,8 @@ def export_all_domains(geodatabase, workspace=None):
         for domain in domains:
             dname = arcpy.ValidateTableName(domain.name + '_domain', workspace)
             output = os.path.join(workspace, dname)
+            if workspace != geodatabase:
+                output += '.txt'
             output_msg('Exporting {0} domain to {1}'.format(domain.name, dname))
             arcpy.DomainToTable_management(geodatabase, domain.name, output, "codedValues", 'description')
 
