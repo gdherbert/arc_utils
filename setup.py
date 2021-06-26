@@ -7,17 +7,19 @@ from os import path
 def read(fname):
     return open(path.join(path.dirname(__file__), fname)).read()
 
+
 setup(
     name='arc_utils',
-    version='1.0',
-    description="Python utilities for use with Esri ArcGIS Desktop/Pro software",
+    version='1.01',
+    description="Python utilities for use with Esri ArcGIS Desktop, ArcGIS Pro software",
+    license='License:: MIT',
     long_description=read('README.md'),
     long_description_content_type='text/markdown',
     url='https://github.com/gdherbert/arc_utils',
     author='Grant Herbert',
     author_email='gdherbert@gmail.com',
     keywords='esri arcpy arcgis',
-    download_url = 'https://github.com/gdherbert/arc_utils/tree/0.7',
+    download_url = 'https://github.com/gdherbert/arc_utils/tree/1.0',
     classifiers=[
         #   4 - Beta
         #   5 - Production/Stable
@@ -33,7 +35,7 @@ setup(
         # Specify the Python versions you support here. In particular, ensure
         # that you indicate whether you support Python 2, Python 3 or both.
         'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3.x'
+        'Programming Language :: Python :: 3.6'
     ],
     packages=find_packages()
     )
