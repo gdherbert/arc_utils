@@ -7,34 +7,42 @@ import collections
 
 testfolder = 'tests'
 
-@pytest.fixture(scope='module')
-def testdata(pytestconfig):
-    gdb = "arc_utils_test.gdb"
-    fc_names = ['test_fc', 'test_fc2']
-    print('folder {}, gdb {}, fc {}'.format(testfolder, gdb, fc_names))
-    result = collections.namedtuple('testdata', 'gdb, fc1, fc2')
-    result.gdb = str(pytestconfig.rootdir.join(testfolder).join(gdb))
-    result.fc1 = str(pytestconfig.rootdir.join(testfolder).join(gdb).join(fc_names[0]))
-    result.fc2 = str(pytestconfig.rootdir.join(testfolder).join(gdb).join(fc_names[1]))
-    print(result)
-    return result
+#@pytest.fixture(scope='module')
+#def testdata(pytestconfig):
+#    gdb = "arc_utils_test.gdb"
+#    fc_names = ['test_fc', 'test_fc2']
+#    print('folder {}, gdb {}, fc {}'.format(testfolder, gdb, fc_names))
+#    result = collections.namedtuple('testdata', 'gdb, test_fc, test_fc2')
+#    result.gdb = str(pytestconfig.rootdir.join(testfolder).join(gdb))
+#    result.fc1 = str(pytestconfig.rootdir.join(testfolder).join(gdb).join(fc_names[0]))
+#    result.fc2 = str(pytestconfig.rootdir.join(testfolder).join(gdb).join(fc_names[1]))
+#    print(result)
+#    return result
 
+@pytest.fixture(scope='module')
+def testgdb(pytestconfig):
+    gdb_name = "arc_utils_test_tmp.gdb"
+    return str(pytestconfig.rootdir.join(testfolder).join(gdb_name))
 
 @pytest.fixture(scope='module')
 def testmxd(pytestconfig):
     mxd_name = "arc_utils_test.mxd"
     return str(pytestconfig.rootdir.join(testfolder).join(mxd_name))
 
+@pytest.fixture(scope='module')
+def testaprx(pytestconfig):
+    aprx_name = "arc_utils_test_pro.aprx"
+    return str(pytestconfig.rootdir.join(testfolder).join(aprx_name))
 
 @pytest.fixture(scope='module')
-def testdata2(request):
+def testdatabase(request, testgdb):
     # create a testing gdb
     print("Creating test geodatabase")
-    testgdbpath = os.path.join(arcpy.env.scratchFolder, "arc_utils_test.gdb")
+    testgdbpath = testgdb # os.path.join(arcpy.env.scratchFolder, "arc_utils_test.gdb")
     if arcpy.Exists(testgdbpath):
         print("Deleting " + testgdbpath)
         arcpy.Delete_management(testgdbpath)
-    arcpy.CreateFileGDB_management(arcpy.env.scratchFolder, "arc_utils_test.gdb")
+    arcpy.CreateFileGDB_management(os.path.dirname(testgdbpath), os.path.basename(testgdbpath))
     # add a domain for each field in testfc
     ftext_dom_name = "ftext_coded"
     fint_dom_name = "fint_range"
@@ -72,7 +80,7 @@ def testdata2(request):
                 lat = 47.6 + float(random.randint(-9, 9)) / 100
                 cursor.insertRow([key, val, (lon, lat)])
 
-    result = collections.namedtuple('testdata', 'gdb, fc1, fc2')
+    result = collections.namedtuple('testdata', 'gdb, test_fc1, test_fc2')
     result.gdb = testgdbpath
     result.fc1 = fc_paths[0]
     result.fc2 = fc_paths[1]
