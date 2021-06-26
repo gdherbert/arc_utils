@@ -7,18 +7,6 @@ import collections
 
 testfolder = 'tests'
 
-#@pytest.fixture(scope='module')
-#def testdata(pytestconfig):
-#    gdb = "arc_utils_test.gdb"
-#    fc_names = ['test_fc', 'test_fc2']
-#    print('folder {}, gdb {}, fc {}'.format(testfolder, gdb, fc_names))
-#    result = collections.namedtuple('testdata', 'gdb, test_fc, test_fc2')
-#    result.gdb = str(pytestconfig.rootdir.join(testfolder).join(gdb))
-#    result.fc1 = str(pytestconfig.rootdir.join(testfolder).join(gdb).join(fc_names[0]))
-#    result.fc2 = str(pytestconfig.rootdir.join(testfolder).join(gdb).join(fc_names[1]))
-#    print(result)
-#    return result
-
 @pytest.fixture(scope='module')
 def testgdb(pytestconfig):
     gdb_name = "arc_utils_test_tmp.gdb"

@@ -5,8 +5,6 @@ import os
 def test_tableobj_properties(testdatabase):
     # test table object properties
     testdata = testdatabase
-    print(testdata.gdb)
-    print(testdata.fc1)
     tbl = table.TableObj(testdata.fc1)
     assert tbl.name == 'test_fc'
     assert tbl.path == testdata.fc1
