@@ -271,6 +271,8 @@ class TableObj(object):
         """compare field values with domain values
             return a named tuple (matched = values in domain,
             unmatched = values outside of domain
+            NULL is skipped
+
             :param field {string}
                 Field name
             :param gdb {string}
@@ -301,16 +303,20 @@ class TableObj(object):
         if domain_type == 'Range':
             # compare upper and lower bounds
             for fv in field_values:
-                if fv < domain_values[0] or fv > domain_values[1]:
+                if fv == 'NULL':
+                    continue
+                elif int(fv) < domain_values[0] or int(fv) > domain_values[1]:
                     field_out_domain.append(fv)
                 else:
                     field_in_domain.append(fv)
         else:
-            for value in field_values:
-                if value in domain_values:
-                    field_in_domain.append(value)
+            for fv in field_values:
+                if type(fv) == bytes: # Python 3 catch as domain values are strings
+                    fv = fv.decode()
+                if fv in domain_values:
+                    field_in_domain.append(fv)
                 else:
-                    field_out_domain.append(value)
+                    field_out_domain.append(fv)
 
         return nt(field_in_domain, field_out_domain)
 
@@ -417,4 +423,4 @@ def import_schema_to_fc(csv_file, fc_name):
     # create fc from fc_name
     # add fields from field list
     # arcpy.AddField_management(in_table, field_name, field_type, {field_precision}, {field_scale}, {field_length}, {field_alias}, {field_is_nullable}, {field_is_required}, {field_domain})
-    pass
+    return None
