@@ -20,6 +20,7 @@ class GDBObj(object):
         self.path = gdb_path
         self.describe_obj = self._describe_object()
         self.feature_classes = self.get_feature_class_names()
+        self.domain_names = self.get_all_domain_names()
 
     def _describe_object(self):
         """ returns describe object"""
@@ -37,6 +38,13 @@ class GDBObj(object):
                 fc_list.append(fc)
         arcpy.env.workspace = temp_ws
         return fc_list
+
+    def get_all_domain_names(self):
+        domain_names = []
+        domains = arcpy.da.ListDomains(self.path)
+        for domain in domains:
+            domain_names.append(domain.name)
+        return domain_names
 
 
 #TODO split into 3 - get all FC, create formatted string output, write to file. use io
