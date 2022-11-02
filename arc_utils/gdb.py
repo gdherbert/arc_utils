@@ -20,12 +20,13 @@ class GDBObj(object):
         self.path = gdb_path
         self.describe_obj = self._describe_object()
         self.feature_classes = self.get_feature_class_names()
+        self.tables = self.get_table_names()
         self.domain_names = self.get_all_domain_names()
 
     def _describe_object(self):
         """ returns describe object"""
         return arcpy.Describe(self.path)
-    
+        
     def get_feature_class_names(self):
         """ get a list of all the featureclass names"""
         fc_list = []
@@ -38,6 +39,17 @@ class GDBObj(object):
                 fc_list.append(fc)
         arcpy.env.workspace = temp_ws
         return fc_list
+        
+    def get_table_names(self):
+        """ get a list of all the table names"""
+        tbl_list = []
+        temp_ws = arcpy.env.workspace
+        arcpy.env.workspace = self.path
+        tbls = arcpy.ListTables()
+        for tbl in tbls:
+            tbl_list.append(tbl)
+        arcpy.env.workspace = temp_ws
+        return tbl_list
 
     def get_all_domain_names(self):
         domain_names = []
