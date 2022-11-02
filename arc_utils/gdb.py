@@ -58,6 +58,19 @@ class GDBObj(object):
             domain_names.append(domain.name)
         return domain_names
 
+    def OID_check(self):
+        for fc in self.feature_classes:
+            oidfield = ''
+            tmp = arcpy.Describe(fc)
+            if tmp.hasOID:
+                oidfield = tmp.OIDFieldName
+            print('featureclass', tmp.name, tmp.hasOID, oidfield)
+        for tb in self.tables:
+            oidfield = ''
+            tmp = arcpy.Describe(tb)
+            if tmp.hasOID:
+                oidfield = tmp.OIDFieldName
+            print('table', tmp.name, tmp.hasOID, oidfield)
 
 #TODO split into 3 - get all FC, create formatted string output, write to file. use io
 def report_all_fc_as_text(geodatabase, output_file=None, sep='\t'):
