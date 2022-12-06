@@ -398,13 +398,11 @@ def compare_schema(fc1, fc2):
                 output_msg(the_result)
                 result_arr.append(the_result)
             else:
-                field_one_type = field_dict1[ifield]['type']
-                field_two_type = field_dict2[ifield]['type']
-                field_one_length = field_dict1[ifield]['length']
-                field_two_length = field_dict2[ifield]['length']
-
-                the_result = " {0} {1} {2} {3} does not exactly match {4} {5} {6} {7}".format(
-                    fc1, ifield, field_one_type, field_one_length, fc2, ifield, field_two_type, field_two_length)
+                the_result = "Field Mismatch {}: ({}, {}) ".format(
+                    ifield, fc1, fc2)
+                for k in field_dict1[ifield]:
+                    if field_dict1[ifield][k] != field_dict2[ifield][k]:
+                        the_result += '{}: ({}, {}) '.format(k, field_dict1[ifield][k], field_dict2[ifield][k])
                 output_msg(the_result)
                 result_arr.append(the_result)
 
