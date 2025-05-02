@@ -8,7 +8,7 @@ Shortcuts for accessing elements of a map document, performing various data disc
 ### How do I get set up? ###
 
 * To install the utilities: 
-* `pip install arc_utils`
+* ``pip install arc_utils``
 * Clone the repo to your machine and add the path to the python install https://docs.python.org/2/tutorial/modules.html#the-module-search-path
 * Optionally, you can copy the folder to the site-packages in the ESRI python install directory, or add a .pth file to the site-packages folder pointing to the clone directory.
 
@@ -16,8 +16,7 @@ To use the utilities:
 
 * in the python window in ArcGIS Pro
 
-``import arc_utils as au
-``
+``import arc_utils as au``
 
 * typing ``au.`` will now reveal the modules and functions available to you if you have autocomplete on
 
