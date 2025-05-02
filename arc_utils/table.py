@@ -212,6 +212,27 @@ class TableObj(object):
         except Exception as e:
             output_msg(e.args[0])
 
+    def find_duplicate_field_values_as_df(path, fields):
+        """Return set of unique field values
+            :param path {String}:
+                path to data
+            :param field [{String}]:
+                list of name(s) of fields to parse
+            :return Pandas DataFrame of values which are duplicated in the field with count > 1 (ignores Null values).
+            Use Pandas DataFrame <result>.to_csv() to export to file
+        """
+        if not isinstance(fields, list):
+            fieldslist = [fields]
+        else:
+            fieldslist = fields
+        
+        import pandas
+        data = arcpy.da.TableToNumPyArray(path, fieldslist, null_value='NULL')
+        df = pandas.DataFrame(data)
+        count = df.groupby(fields).size().reset_index().rename(columns={0:'count'})
+        dups = count[count['count'] > 1]
+        return dups
+    
     def export_schema_to_csv(self, path):
         """Create a csv schema report of all fields in a featureclass,
         to the supplied path.
