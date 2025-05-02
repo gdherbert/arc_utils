@@ -2,7 +2,7 @@
 
 
 ### What is this repository for? ###
-* A collection of (mostly) arcpy related utilities for use within ArcGIS Desktop (Python 2.7), or ArcGIS Pro (Python 3) as well where possible.
+* A collection of (mostly) arcpy related utilities for use within ArcGIS Pro (Python 3).
 Shortcuts for accessing elements of a map document, performing various data discovery tasks on a table or gdb
 
 ### How do I get set up? ###
@@ -14,7 +14,7 @@ Shortcuts for accessing elements of a map document, performing various data disc
 
 To use the utilities:
 
-* in the python window in ArcMap/ArcCatalog/Pro
+* in the python window in ArcGIS Pro
 
 ``import arc_utils as au
 ``
@@ -33,10 +33,6 @@ To use the utilities:
 
 ``print(tbl.fields)``
 
-``mxd_doc = au.mxd.MxdObj(“CURRENT”)``
-
-``mxd_doc.layer_names_array`` >> [‘layer1’,’layer2’]
-
 ``pro_doc = au.aprx.AprxObj(“CURRENT”)``
 
 ``pro_doc.maps`` >> [<arcpy._mp.Map object at 0x000001A4AECBF108>, <arcpy._mp.Map object at 0x000001A4AEBB6608>]
@@ -45,4 +41,4 @@ To use the utilities:
 
 ### Contribution guidelines ###
 
-Contributions welcomed, this is a starting point for various utilities that I think could be useful within Arc.
+Contributions welcomed, this is a starting point for various utilities that I think could be useful within ArcGIS Pro.
