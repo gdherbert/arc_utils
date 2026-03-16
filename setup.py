@@ -9,8 +9,8 @@ long_description = (this_directory / "README.md").read_text(encoding="utf-8")
 
 setup(
     name='arc_utils',
-    version='1.1',
-    description="Python utilities for use with Esri ArcGIS Desktop, ArcGIS Pro software",
+    version='1.2',
+    description="Python utilities for use with Esri ArcGIS Pro software",
     license='License:: MIT',
     long_description=long_description,
     long_description_content_type='text/markdown',
@@ -18,7 +18,7 @@ setup(
     author='Grant Herbert',
     author_email='gdherbert@gmail.com',
     keywords='esri arcpy arcgis',
-    download_url = 'https://github.com/gdherbert/arc_utils/tree/1.0',
+    download_url = 'https://github.com/gdherbert/arc_utils/tree/1.2',
     classifiers=[
         #   4 - Beta
         #   5 - Production/Stable
@@ -33,7 +33,7 @@ setup(
         'Environment :: Win64 (MS Windows)',
         # Specify the Python versions you support here. In particular, ensure
         # that you indicate whether you support Python 2, Python 3 or both.
-        'Programming Language :: Python :: 3.6'
+        'Programming Language :: Python :: 3.13'
     ],
     packages=find_packages()
     )
