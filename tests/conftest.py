@@ -13,11 +13,6 @@ def testgdb(pytestconfig):
     return str(pytestconfig.rootdir.join(testfolder).join(gdb_name))
 
 @pytest.fixture(scope='module')
-def testmxd(pytestconfig):
-    mxd_name = "arc_utils_test.mxd"
-    return str(pytestconfig.rootdir.join(testfolder).join(mxd_name))
-
-@pytest.fixture(scope='module')
 def testaprx(pytestconfig):
     aprx_name = "arc_utils_test_pro.aprx"
     return str(pytestconfig.rootdir.join(testfolder).join(aprx_name))

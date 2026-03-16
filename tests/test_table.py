@@ -14,7 +14,7 @@ def test_tableobj_properties(testdatabase):
     assert tbl.field_dict['Shape']['type'] == u'Geometry'
     assert tbl.field_dict['ftext']['aliasName']== u'ftext'
     assert tbl.field_dict['OBJECTID']['required']== True
-    assert tbl.field_dict['fint']['type']== u'SmallInteger'
+    assert tbl.field_dict['fint']['type']== u'Integer'
 
 
 def test_tableobj_single_text_field_methods(testdatabase):
@@ -28,7 +28,7 @@ def test_tableobj_single_text_field_methods(testdatabase):
     assert tbl.get_max_field_value_length('ftext') == 5
 
 
-def test_tableobj_single_text_field_methods(testdatabase):
+def test_tableobj_single_integer_field_methods(testdatabase):
     # test table object methods
     tbl = table.TableObj(testdatabase.fc1)
     fint_set = tbl.get_field_value_set('fint')
@@ -43,7 +43,7 @@ def test_tableobj_multi_field_methods(testdatabase):
     tbl = table.TableObj(testdatabase.fc1)
     multi_field = tbl.get_multiple_field_value_set(['ftext', 'fint'])
     assert isinstance(multi_field, set)
-    assert sorted(multi_field) == [u'NULL:5', u'val02:7', u'val1:0', u'val1:10', u'val1:4', u'val1:5', u'val2:5', u'val2:7']
+    assert sorted(multi_field) == [u'NULL:5', u'val02:7', u'val1:10', u'val1:4', u'val1:NULL', u'val2:5', u'val2:7']
    
     
 

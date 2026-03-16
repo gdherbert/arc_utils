@@ -2,7 +2,6 @@
 """utilities for working with tables, featureclasses and fields
 """
 from __future__ import print_function, unicode_literals, absolute_import
-import six
 import arcpy
 from .output import get_valid_output_path
 from .output import output_msg
@@ -22,9 +21,11 @@ class TableObj(object):
         self.describe_obj = self._describe_object()
         self.name = self._get_fc_name()
         self.type = self._get_fc_type()
+        self.field_dict = self._make_field_dict()
         self.fields = self._list_field_names()
         self.fields2 = self._list_field_names(required=False)
-        self.field_dict = self._make_field_dict()
+        self.fieldaliases = self._list_field_names(aliases=True)
+        
 
     def _describe_object(self):
         """ returns describe object"""
@@ -41,13 +42,16 @@ class TableObj(object):
         else:
             return 'Unknown'
 
-    def _list_field_names(self, required=True):
+    def _list_field_names(self, required=True, aliases=False):
         """Array of field names
         """
         if required:
-            f_list = [field.name for field in arcpy.ListFields(self.path)]
+            f_list = [field['name'] for field in self.field_dict.values()]
         else:
-            f_list = [field.name for field in arcpy.ListFields(self.path) if not field.required]
+            f_list = [field['name'] for field in self.field_dict.values() if not field['required']]
+        if aliases:
+            # override the output to use aliases instead of field names
+            f_list = [self.field_dict[field]['aliasName'] for field in f_list]
         return f_list
 
     def _make_field_dict(self):
@@ -126,14 +130,11 @@ class TableObj(object):
                         length = len(val)
         return length
 
-    def get_field_value_set(self, field, charset='ascii'):
+    def get_field_value_set(self, field):
         """Return set of unique field values
             :param field {String}:
                 name of the field to parse
-            :param: charset {String}:
-                character set to use (default = 'ascii').
-                Valid values are those in the Python documentation for string encode.
-            :return set of unique values. Null values are represented as 'NULL'
+            :return set of unique values. Null values are represented as 'NULL' string
            """
         try:
             value_set = set()  # set to hold unique values
@@ -141,12 +142,6 @@ class TableObj(object):
                 for value in values:
                     if value[0] is None:
                         value_set.add("NULL")
-                    elif isinstance(value[0], six.string_types):
-                        if charset != 'ascii':
-                            value_set.add(value[0])
-                        else:
-                            # if unicode strings are causing problem, try
-                            value_set.add(value[0].encode('ascii', 'ignore'))
                     else:
                         value_set.add(value[0])
             return value_set
@@ -159,7 +154,6 @@ class TableObj(object):
     def get_multiple_field_value_set(self, fields, sep=':'):
         """return a set of unique field values for an input table
         and any number of fields (values will be concatenated with sep)
-        null values converted to 'NULL'
         :param fields {array of String values}:
             single field name or an array of field names (['Field1', 'Field2'])
         :param sep {String}:
@@ -169,16 +163,24 @@ class TableObj(object):
             fieldslist = [fields]
         else:
             fieldslist = fields
-        import pandas
-        data = arcpy.da.TableToNumPyArray(self.path, fieldslist, null_value='NULL')
-        df = pandas.DataFrame(data)
-        pandas.DataFrame.drop_duplicates(df, inplace=True)
+        #import pandas
+        #data = arcpy.da.TableToNumPyArray(self.path, fieldslist)
+        #df = pandas.DataFrame(data)
+        #pandas.DataFrame.drop_duplicates(df, inplace=True)
         # concatenate values
-        if len(fieldslist) > 1:
-            result = df[fieldslist].apply(lambda x: sep.join(x.dropna().astype(str)), axis=1)  # all types
-        else:
-            result = df.values.flatten()
+        #if len(fieldslist) > 1:
+        #    result = df[fieldslist].apply(lambda x: sep.join(x.dropna().astype(str)), axis=1)  # all types
+        #else:
+        #    result = df.values.flatten()
         # return as a set
+
+        result = set()
+        
+        with arcpy.da.SearchCursor(self.path, fieldslist) as cursor:
+            for row in cursor:
+                parts = [('NULL' if v is None else str(v)) for v in row]
+                result.add(sep.join(parts))
+
         return set(result)
 
     def find_duplicate_field_values(self, field, charset='ascii'):
@@ -197,12 +199,6 @@ class TableObj(object):
                 for value in values:
                     if value[0] in value_set:
                         dup_set.add(value[0])
-                    if isinstance(value[0], six.string_types):
-                        if charset != 'ascii':
-                            value_set.add(value[0])
-                        else:
-                            # if unicode strings are causing problem, try
-                            value_set.add(value[0].encode('ascii', 'ignore'))
                     else:
                         value_set.add(value[0])
             return dup_set
@@ -375,7 +371,7 @@ def get_max_field_value(input_fc, field, treatasfloat=False):
                         val = float(value[0])
                     else:
                         val = value[0]
-                    if isinstance(val, six.string_types):
+                    if isinstance(val, str):
                         # return longest string
                         if result is None:
                             result = ''
