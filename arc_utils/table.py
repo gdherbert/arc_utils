@@ -375,9 +375,9 @@ class TableObj(object):
         return result
 
 
-def export_field_sets(layr_list, out_xlsx, ignore_fields=[], use_lyr_alias=True):
+def export_field_sets(fc_list, out_xlsx, ignore_fields=["objectid","globalid"], use_lyr_alias=True):
     """ Export unique field values for each layer in a list to an Excel file with one sheet per layer
-    :param layr_list: list of layer objects or paths to layers
+    :param fc_list: list of feature class or table paths
     :param out_xlsx: path to output Excel file
     :param ignore_fields: list of lowercase fields to ignore (e.g. ['objectid', 'shape'])
     :param use_lyr_alias: if True, use layer alias for sheet name;"""
@@ -416,7 +416,7 @@ def export_field_sets(layr_list, out_xlsx, ignore_fields=[], use_lyr_alias=True)
 
 		row_idx = 2
 
-		for fld in tbl.fields2:
+		for fld in tbl.fields2:  # skip required fields by default
 			if fld.lower() in ignore_fields:
                 continue
 
