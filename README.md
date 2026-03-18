@@ -3,7 +3,7 @@
 
 ### What is this repository for? ###
 * A collection of (mostly) arcpy related utilities for use within ArcGIS Pro (Python 3).
-Shortcuts for accessing elements of a map document, performing various data discovery tasks on a table or gdb
+Shortcuts for accessing elements of a map document, performing various data discovery tasks on a table or geodatabase
 
 ### How do I get set up? ###
 
