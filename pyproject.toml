@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=77.0.3"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "arc_utils"
+version = "1.2"
+description = "Python utilities for use with Esri ArcGIS Pro software"
+readme = { file = "README.md", content-type = "text/markdown" }
+requires-python = ">=3.11"
+license = { text = "MIT" }
+
+authors = [
+  { name = "Grant Herbert", email = "gdherbert@gmail.com" }
+]
+
+keywords = ["esri", "arcpy", "arcgis"]
+
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "Programming Language :: Python",
+  "License :: OSI Approved :: MIT License",
+  "Environment :: Win64 (MS Windows)",
+  "Programming Language :: Python :: 3.13"
+]
+
+[project.urls]
+Homepage = "https://github.com/gdherbert/arc_utils"
+Download = "https://github.com/gdherbert/arc_utils/tree/1.2"
+
+[tool.setuptools.packages.find]
+where = ["."]
