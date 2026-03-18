@@ -3,8 +3,8 @@ requires = ["setuptools>=77.0.3"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "arc_utils"
-version = "1.2"
+name = "arc-utils"
+version = "1.2.1"
 description = "Python utilities for use with Esri ArcGIS Pro software"
 readme = { file = "README.md", content-type = "text/markdown" }
 requires-python = ">=3.11"
@@ -20,9 +20,8 @@ classifiers = [
   "Development Status :: 4 - Beta",
   "Intended Audience :: Developers",
   "Programming Language :: Python",
-  "License :: OSI Approved :: MIT License",
-  "Environment :: Win64 (MS Windows)",
-  "Programming Language :: Python :: 3.13"
+  "Programming Language :: Python :: 3.13",
+  "Operating System :: Microsoft :: Windows"
 ]
 
 [project.urls]
