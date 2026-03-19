@@ -7,10 +7,17 @@ Shortcuts for accessing elements of a map document, performing various data disc
 
 ### How do I get set up? ###
 
-* To install the utilities: 
-* ``pip install arc_utils``
-* Clone the repo to your machine and add the path to the python install https://docs.python.org/2/tutorial/modules.html#the-module-search-path
-* Optionally, you can copy the folder to the site-packages in the ESRI python install directory, or add a .pth file to the site-packages folder pointing to the clone directory.
+Install from PyPI:
+
+```bash
+pip install arc-utils
+```
+
+For local development and editable usage from clone:
+
+```bash
+python -m pip install -e .
+```
 
 To use the utilities:
 
