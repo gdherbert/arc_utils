@@ -14,7 +14,7 @@ def test_tableobj_properties(testdatabase):
     assert tbl.field_dict['Shape']['type'] == u'Geometry'
     assert tbl.field_dict['ftext']['aliasName']== u'ftext'
     assert tbl.field_dict['OBJECTID']['required']== True
-    assert tbl.field_dict['fint']['type']== u'Integer'
+    assert tbl.field_dict['fint']['type']== u'SmallInteger'
 
 
 def test_tableobj_single_text_field_methods(testdatabase):
@@ -24,7 +24,7 @@ def test_tableobj_single_text_field_methods(testdatabase):
     assert isinstance(ftext_set, set)
     assert sorted(ftext_set) == [u'NULL', 'val02', 'val1', 'val2']
     assert tbl.get_max_field_value('ftext') == 'val2'
-    assert tbl.get_max_field_value('ftext', True) == 'val02'
+    assert tbl.get_max_field_value('ftext', lengthcomp=True) == 'val02'
     assert tbl.get_max_field_value_length('ftext') == 5
 
 
@@ -66,4 +66,22 @@ def test_table_fc_methods(testdatabase):
     # test non-object table methods
     #table.compare_schema(testdata.fc, testdata.fc2)
     assert True
+
+
+def test_export_fields_to_worksheet(testdatabase):
+    from openpyxl import Workbook
+
+    tbl = table.TableObj(testdatabase.fc1)
+    wb = Workbook()
+    ws = wb.active
+    tbl.export_fields_to_worksheet(ws)
+
+    # header row
+    assert ws["A1"].value == "Field"
+    assert ws["B1"].value == "Values"
+
+    # should include ftext and fint field rows
+    row_values = [ws.cell(row=r, column=1).value for r in range(2, 5)]
+    assert "ftext" in row_values
+    assert "fint" in row_values
 

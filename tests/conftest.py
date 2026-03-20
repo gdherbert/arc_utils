@@ -44,7 +44,7 @@ def testdatabase(request, testgdb):
     arcpy.SetValueForRangeDomain_management(testgdbpath, fint_dom_name, 1, 12)
     print("Creating test featureclasses")
     sr = arcpy.SpatialReference(4326)
-    fc_names = ['test_fc', 'test_fc2']
+    fc_names = ['test_fc1', 'test_fc2']
     fc_paths = []
     fc_fields = (('ftext', 'TEXT', None, None, 20, '', 'NULLABLE', 'NON_REQUIRED', ftext_dom_name),
                  ('fint', 'SHORT', 0, 0, 0, '', 'NULLABLE', 'NON_REQUIRED', fint_dom_name))
