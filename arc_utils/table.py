@@ -377,108 +377,49 @@ class TableObj(object):
             _print(["{:>12}".format(getattr(f, i)) for i in atts])
 
 
-    def get_max_field_value(input_fc, field, treatasfloat=False):
-        """Return either the longest string in the field,
-        or the largest number.
-            :param input_fc {String}:
-                Path or reference to feature class or table.
-            :param field {String}:
-                name of the field to parse
-            :param treatasfloat:
-                setting to treat the field as a float value (expects all numeric)
-            :return value of largest field entry
-        """
-        result = None
-        with arcpy.da.SearchCursor(input_fc, field) as values:
-                for value in values:
-                    if value[0] is not None:
-                        if treatasfloat:
-                            val = float(value[0])
-                        else:
-                            val = value[0]
-                        if isinstance(val, str):
-                            # return longest string
-                            if result is None:
-                                result = ''
-                            if len(val) > len(result):
-                                result = val
-                        else:
-                            if result is None:
-                                result = 0
-                            if val > result:
-                                result = val
-        return result
 
 
-def export_field_sets(fc_list, out_xlsx, ignore_fields=["objectid","globalid"], use_lyr_alias=True):
-    """ Export unique field values for each layer in a list to an Excel file with one sheet per layer
+def export_field_sets(fc_list, out_xlsx, ignore_fields=None, use_lyr_alias=True):
+    """Export unique field values for each layer in a list to an Excel file with one sheet per layer.
     :param fc_list: list of feature class or table paths
     :param out_xlsx: path to output Excel file
     :param ignore_fields: list of lowercase fields to ignore (e.g. ['objectid', 'shape'])
-    :param use_lyr_alias: if True, use layer alias for sheet name;"""
-	import os
-	from openpyxl import Workbook
+    :param use_lyr_alias: if True, use layer alias for sheet name
+    """
+    from openpyxl import Workbook
 
-    ignore_fields = [v.lower() for v in ignore_fields]
+    if ignore_fields is None:
+        ignore_fields = ["objectid", "globalid"]
+    ignore_fields = {v.lower() for v in ignore_fields}
 
-	# Create workbook
-	wb = Workbook()
-	# Remove the default sheet that openpyxl creates
-	default_sheet = wb.active
-	wb.remove(default_sheet)
+    if not isinstance(fc_list, (list, tuple, set)):
+        fc_list = [fc_list]
 
-	# Loop through layers and create a sheet per layer
-	for lyr in layr_list:
-		tbl = TableObj(lyr)
+    wb = Workbook()
+    # Remove the default sheet that openpyxl creates
+    default_sheet = wb.active
+    wb.remove(default_sheet)
 
-		print(f'Processing name: {tbl.name}, alias: {str(lyr)}')
+    # Loop through layers and create a sheet per layer
+    for lyr in fc_list:
+        tbl = TableObj(lyr)
+        print(f'Processing name: {tbl.name}, alias: {str(lyr)}')
 
-		# Excel sheet name must be <= 31 chars and cannot contain: : \ / ? * [ ]
-		if use_lyr_alias:
-			raw_name = str(lyr)
-		else:
-			raw_name = str(tbl.name) if hasattr(tbl, "name") else str(lyr)
-		safe_name = "".join(ch for ch in raw_name if ch not in r':\/?*[]')
-		safe_name = safe_name[:31] if len(safe_name) > 31 else safe_name
-		if not safe_name:
-			safe_name = "Sheet"
+        # Excel sheet name must be <= 31 chars and cannot contain: : \ / ? * [ ]
+        if use_lyr_alias:
+            raw_name = str(lyr)
+        else:
+            raw_name = str(tbl.name) if hasattr(tbl, "name") else str(lyr)
+        safe_name = "".join(ch for ch in raw_name if ch not in r':\/?*[]')
+        safe_name = safe_name[:31] if len(safe_name) > 31 else safe_name
+        if not safe_name:
+            safe_name = "Sheet"
 
-		ws = wb.create_sheet(title=safe_name)
-
-		# Header row
-		ws["A1"] = "Field"
-		ws["B1"] = "Values"
-
-		row_idx = 2
-
-		for fld in tbl.fields2:  # skip required fields by default
-			if fld.lower() in ignore_fields:
-                continue
-
-            #get field alias if available
-            if fld in tbl.field_dict and 'aliasName' in tbl.field_dict[fld] and tbl.field_dict[fld]['aliasName']:
-                alias = tbl.field_dict[fld]['aliasName']
-            else:
-                alias = fld
-			# Get unique values for the field
-			vals = tbl.get_field_value_set(fld)
-
-			# Convert to sorted, comma-separated string
-			# Make sure everything is a string for consistency
-			vals_str = ", ".join(sorted(str(v) for v in vals))
-
-			# Write to Excel
-            ws.cell(row=row_idx, column=1, value=alias)    # Column A: field alias/name
-			try:
-			    ws.cell(row=row_idx, column=2, value=vals_str) # Column B: CSV of unique values
-            except Exception as e:
-			    ws.cell(row=row_idx, column=2, value="VALUES ERROR") # Column B: error msg
-                print(f"Error writing field '{alias}' values to Excel: {e}")
-            row_idx += 1
-                
-	# Save workbook
-	wb.save(out_xlsx)
-	print(f"\nExcel file written to: {out_xlsx}")
+        ws = wb.create_sheet(title=safe_name)
+        tbl.export_fields_to_worksheet(ws, ignore_fields=ignore_fields)
+    # Save workbook
+    wb.save(out_xlsx)
+    print(f"\nExcel file written to: {out_xlsx}")
 
 
 def compare_schema(fc1, fc2):
