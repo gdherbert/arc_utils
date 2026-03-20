@@ -45,6 +45,26 @@ To use the utilities:
 
 ``pro_doc.maps[0].name`` >> ‘Map’
 
+### Exporting field values to Excel ###
+
+```python
+import arc_utils as au
+from openpyxl import Workbook
+
+# Single table export with class method
+tbl = au.table.TableObj(r"C:\path\to\featureclass")
+wb = Workbook()
+ws = wb.active
+tbl.export_fields_to_worksheet(ws)
+wb.save(r"C:\path\to\schema_values.xlsx")
+```
+
+```python
+# Multi-layer export with module function
+layers = [r"C:\path\to\layer1", r"C:\path\to\layer2"]
+au.table.export_field_sets(layers, r"C:\path\to\all_layers.xlsx")
+```
+
 ### Contribution guidelines ###
 
 Contributions welcomed, this is a starting point for various utilities that I think could be useful within ArcGIS Pro.
