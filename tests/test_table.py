@@ -6,7 +6,7 @@ def test_tableobj_properties(testdatabase):
     # test table object properties
     testdata = testdatabase
     tbl = table.TableObj(testdata.fc1)
-    assert tbl.name == 'test_fc'
+    assert tbl.name == 'test_fc1'
     assert tbl.path == testdata.fc1
     assert tbl.type == u'Point'
     assert tbl.fields == [u'OBJECTID', u'Shape', u'ftext', u'fint']

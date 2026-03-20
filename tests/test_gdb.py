@@ -10,5 +10,5 @@ def test_gdb_properties(testdatabase):
 def test_gdb_content(testdatabase):
     gdbpath = testdatabase.gdb
     gdbobj = gdb.GDBObj(gdbpath)
-    assert sorted(gdbobj.get_feature_class_names()) == ['test_fc', 'test_fc2']
+    assert sorted(gdbobj.get_feature_class_names()) == ['test_fc1', 'test_fc2']
     assert sorted(gdbobj.get_all_domain_names()) == ['fint_range', 'ftext_coded']
