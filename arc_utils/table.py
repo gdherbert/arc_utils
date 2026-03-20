@@ -3,6 +3,7 @@
 """
 from __future__ import print_function, unicode_literals, absolute_import
 import arcpy
+import os
 from .output import get_valid_output_path
 from .output import output_msg
 
@@ -18,6 +19,10 @@ class TableObj(object):
         adds properties and methods
         """
         self.path = table_path
+        if isinstance(self.path, str):
+            self.path = os.path.abspath(self.path)
+        if not arcpy.Exists(self.path):
+            raise RuntimeError("TableObj path is not found or invalid table/featureclass: {}".format(self.path))
         self.describe_obj = self._describe_object()
         self.name = self._get_fc_name()
         self.type = self._get_fc_type()
@@ -25,6 +30,7 @@ class TableObj(object):
         self.fields = self._list_field_names()
         self.fields2 = self._list_field_names(required=False)
         self.fieldaliases = self._list_field_names(aliases=True)
+        self.ignore_fields = ["objectid", "globalid","fid", "shape", "shape_area", "shape.area", "shape.starea()", "shape_length", "shape.len", "shape.stlength()"]
         
 
     def _describe_object(self):
@@ -136,6 +142,8 @@ class TableObj(object):
                 name of the field to parse
             :return set of unique values. Null values are represented as 'NULL' string
            """
+        if not arcpy.Exists(self.path):
+            raise RuntimeError("TableObj path is not a table/featureclass: {}".format(self.path))
         try:
             value_set = set()  # set to hold unique values
             with arcpy.da.SearchCursor(self.path, field) as values:
@@ -150,6 +158,33 @@ class TableObj(object):
             output_msg(arcpy.GetMessages(2))
         except Exception as e:
             output_msg(e.args[0])
+
+    def export_fields_to_worksheet(self, worksheet, ignore_fields=None):
+        """Write this table's field unique values to an openpyxl worksheet.
+        if ignore_fields is not provided, will use the default ignore_fields property of the object
+        if ignore_fields is provided, only those fields will be ignored
+        :param worksheet: an openpyxl worksheet object to write to
+        :param ignore_fields: a list of field names to ignore
+        """
+        if ignore_fields is None:
+            ignore_fields = self.ignore_fields
+        ignore_set = {v.lower() for v in ignore_fields}
+
+        worksheet["A1"] = "Field"
+        worksheet["B1"] = "Values"
+
+        row = 2
+        for field_name in self.fields2:
+            if field_name.lower() in ignore_set:
+                continue
+            alias = self.field_dict.get(field_name, {}).get("aliasName") or field_name
+            values = self.get_field_value_set(field_name)
+            values_text = ", ".join(sorted(str(v) for v in values))
+            worksheet.cell(row=row, column=1, value=alias)
+            worksheet.cell(row=row, column=2, value=values_text)
+            row += 1
+
+        return row
 
     def get_multiple_field_value_set(self, fields, sep=':'):
         """return a set of unique field values for an input table
