@@ -64,8 +64,9 @@ def test_tableobj_compare_methods(testdatabase):
 
 def test_table_fc_methods(testdatabase):
     # test non-object table methods
-    #table.compare_schema(testdata.fc, testdata.fc2)
-    assert True
+    result = table.compare_schema(testdatabase.fc1, testdatabase.fc2)
+    expected_result = ["OBJECTID field same in both","Shape field same in both","fint field same in both","ftext field same in both"]
+    assert result == expected_result
 
 
 def test_export_fields_to_worksheet(testdatabase):

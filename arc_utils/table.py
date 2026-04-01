@@ -435,20 +435,20 @@ def compare_schema(fc1, fc2):
     fcobj2 = TableObj(fc2)
     field_dict1 = fcobj1.field_dict
     field_dict2 = fcobj2.field_dict
-    for ifield in sorted(list(set(field_dict1.keys()+field_dict2.keys()))):
+    for ifield in sorted(set(list(field_dict1.keys()) + list(field_dict2.keys()))):
         # check name for missing fields first
-        if not (field_dict1.has_key(ifield)):
-            the_result = " {0} not found in {1}".format(ifield, fc1)
+        if not ifield in field_dict1:
+            the_result = "{0} not found in {1}".format(ifield, fc1)
             output_msg(the_result)
             result_arr.append(the_result)
-        elif not (field_dict2.has_key(ifield)):
-            the_result = " {0} not found in {1}".format(ifield, fc2)
+        elif not ifield in field_dict2:
+            the_result = "{0} not found in {1}".format(ifield, fc2)
             output_msg(the_result)
             result_arr.append(the_result)
         else:
             # string comparison of name, type and length
             if field_dict1[ifield] == field_dict2[ifield]:
-                the_result = " {0} field same in both".format(ifield)
+                the_result = "{0} field same in both".format(ifield)
                 output_msg(the_result)
                 result_arr.append(the_result)
             else:
