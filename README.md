@@ -45,6 +45,19 @@ To use the utilities:
 
 ``pro_doc.maps[0].name`` >> ‘Map’
 
+### Accepted Input Types ###
+
+Most path parameters now accept:
+
+* string path
+* ``pathlib.Path`` / other path-like objects
+* wrapper objects with ``.path``
+* ArcGIS layer/table objects with ``.catalogPath`` or ``.dataSource`` (where applicable)
+
+Invalid paths raise ``ValueError("invalid path")``.
+
+Constructor acceptance is preserved (for example, passing path-like and wrapper objects directly to ``TableObj``, ``GDBObj``, and ``AprxObj``).
+
 ### Exporting field values to Excel ###
 
 ```python
@@ -63,6 +76,21 @@ wb.save(r"C:\path\to\schema_values.xlsx")
 # Multi-layer export with module function
 layers = [r"C:\path\to\layer1", r"C:\path\to\layer2"]
 au.table.export_field_sets(layers, r"C:\path\to\all_layers.xlsx")
+```
+
+```python
+# Worksheet naming behavior:
+# use_lyr_alias=True -> prefer alias/name (human-readable)
+# use_lyr_alias=False -> use full table path (traceable)
+au.table.export_field_sets(layers, r"C:\path\to\all_layers.xlsx", use_lyr_alias=True)
+au.table.export_field_sets(layers, r"C:\path\to\all_layers_by_path.xlsx", use_lyr_alias=False)
+```
+
+```python
+# Duplicate detection outputs
+tbl = au.table.TableObj(r"C:\path\to\featureclass")
+dup_values = tbl.find_duplicate_field_values("STATUS", output="set")
+dup_rows_df = tbl.find_duplicate_field_values(["STATUS", "TYPE"], output="df")
 ```
 
 ### Contribution guidelines ###
