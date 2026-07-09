@@ -1,6 +1,11 @@
 import sys
 if sys.version_info.major == 3:
     from arc_utils import aprx
+    import pathlib
+
+    class PathWrapper(object):
+        def __init__(self, path):
+            self.path = path
 
     def test_aprxobj_properties(testaprx):
         aprxobj = aprx.AprxObj(testaprx)
@@ -19,5 +24,12 @@ if sys.version_info.major == 3:
         map_layer_obj = aprxobj.get_layer_obj_as_array(aprxobj.maps[0])
         assert isinstance(map_layer_obj, list)
         assert map_layer_obj[0].name == 'test_fc'
+
+
+    def test_aprxobj_accepts_pathlike_and_wrapper_inputs(testaprx):
+        aprxobj_pathlike = aprx.AprxObj(pathlib.Path(testaprx))
+        aprxobj_wrapper = aprx.AprxObj(PathWrapper(testaprx))
+        assert aprxobj_pathlike.maps[0].name == 'Map'
+        assert aprxobj_wrapper.layouts[0].name == 'MyLayout'
         
 

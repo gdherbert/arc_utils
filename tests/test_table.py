@@ -1,6 +1,13 @@
 from arc_utils import table
 import collections
 import os
+import pathlib
+import pytest
+
+
+class PathWrapper(object):
+    def __init__(self, path):
+        self.path = path
 
 def test_tableobj_properties(testdatabase):
     # test table object properties
@@ -69,6 +76,17 @@ def test_table_fc_methods(testdatabase):
     assert result == expected_result
 
 
+def test_table_fc_methods_with_pathlike_and_wrapper_inputs(testdatabase):
+    result = table.compare_schema(pathlib.Path(testdatabase.fc1), table.TableObj(PathWrapper(testdatabase.fc2)))
+    expected_result = ["OBJECTID field same in both","Shape field same in both","fint field same in both","ftext field same in both"]
+    assert result == expected_result
+
+
+def test_tableobj_invalid_path_raises_valueerror():
+    with pytest.raises(ValueError, match="invalid path"):
+        table.TableObj("invalidpath")
+
+
 def test_export_fields_to_worksheet(testdatabase):
     from openpyxl import Workbook
 
@@ -85,4 +103,27 @@ def test_export_fields_to_worksheet(testdatabase):
     row_values = [ws.cell(row=r, column=1).value for r in range(2, 5)]
     assert "ftext" in row_values
     assert "fint" in row_values
+
+
+def test_export_field_sets_accepts_pathlike_and_wrapper_inputs(testdatabase, tmp_path):
+    out_xlsx = tmp_path / "field_sets.xlsx"
+    inputs = [
+        pathlib.Path(testdatabase.fc1),
+        table.TableObj(testdatabase.fc2),
+        PathWrapper(testdatabase.fc1),
+    ]
+    table.export_field_sets(inputs, str(out_xlsx))
+    assert out_xlsx.exists()
+
+
+def test_find_duplicate_field_values_dataframe_output(testdatabase):
+    pandas = pytest.importorskip("pandas")
+    tbl = table.TableObj(testdatabase.fc1)
+    dups = tbl.find_duplicate_field_values(["ftext", "fint"], output="df")
+    assert isinstance(dups, pandas.DataFrame)
+    assert "count" in dups.columns
+
+    dups_alias = tbl.find_duplicate_field_values_as_df(["ftext", "fint"])
+    assert isinstance(dups_alias, pandas.DataFrame)
+    assert "count" in dups_alias.columns
 

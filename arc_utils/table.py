@@ -3,26 +3,31 @@
 """
 from __future__ import print_function, unicode_literals, absolute_import
 import arcpy
-import os
 from .output import get_valid_output_path
 from .output import output_msg
+from ._inputs import ensure_valid_path
+from ._inputs import input_display_name
+from ._inputs import normalize_to_sequence
+from ._inputs import resolve_dataset_path
 
 
 class TableObj(object):
     """ provide properties for working with a table/featureclass
     Usage: tbl = arc_utils.table.TableObj(path)
     :param
-        path: a string representing an table/featureclass
+        path: table input accepted as
+            - string path
+            - pathlib.Path / os.PathLike
+            - wrapper object exposing .path
+            - ArcGIS layer/table object exposing .catalogPath or .dataSource
     """
     def __init__(self, table_path):
-        """ sets up reference to table
-        adds properties and methods
+        """Set up table reference and load schema metadata.
+
+        Raises:
+            ValueError: invalid path
         """
-        self.path = table_path
-        if isinstance(self.path, str):
-            self.path = os.path.abspath(self.path)
-        if not arcpy.Exists(self.path):
-            raise RuntimeError("TableObj path is not found or invalid table/featureclass: {}".format(self.path))
+        self.path = ensure_valid_path(resolve_dataset_path(table_path, arg_name="table_path"))
         self.describe_obj = self._describe_object()
         self.name = self._get_fc_name()
         self.type = self._get_fc_type()
@@ -143,7 +148,7 @@ class TableObj(object):
             :return set of unique values. Null values are represented as 'NULL' string
            """
         if not arcpy.Exists(self.path):
-            raise RuntimeError("TableObj path is not a table/featureclass: {}".format(self.path))
+            raise ValueError("invalid path")
         try:
             value_set = set()  # set to hold unique values
             with arcpy.da.SearchCursor(self.path, field) as values:
@@ -208,19 +213,44 @@ class TableObj(object):
 
         return set(result)
 
-    def find_duplicate_field_values(self, field, charset='ascii'):
-        """Return set of unique field values
-            :param field {String}:
-                name of the field to parse
+    def find_duplicate_field_values(self, field, charset='ascii', output='set'):
+        """Return duplicate values from one or more fields.
+            :param field {String|[String]}:
+                field name (or list of field names when output='df')
             :param: charset {String}:
                 character set to use (default = 'ascii').
                 Valid values are those in the Python documentation for string encode.
-            :return set of values which are duplicated in the field (ignores Null values).
+            :param output {String}:
+                'set' returns duplicate values for one field,
+                'df' returns a Pandas DataFrame with duplicate rows and counts.
+            :return set or DataFrame.
            """
+        if not isinstance(field, list):
+            fieldslist = [field]
+        else:
+            fieldslist = field
+
+        if len(fieldslist) == 0:
+            raise ValueError("field must contain at least one field name")
+
+        if output not in ['set', 'df']:
+            raise ValueError("output must be either 'set' or 'df'")
+
         try:
+            if output == 'df':
+                import pandas
+                rows = list(arcpy.da.SearchCursor(self.path, fieldslist))
+                df = pandas.DataFrame(rows, columns=fieldslist)
+                # Keep null combinations in duplicate grouping across mixed field types.
+                count = df.groupby(fieldslist, dropna=False).size().reset_index(name='count')
+                return count[count['count'] > 1]
+
+            if len(fieldslist) != 1:
+                raise ValueError("field must be a single field when output='set'")
+
             dup_set = set()  # set to hold duplicate values
             value_set = set()  # set to hold unique values
-            with arcpy.da.SearchCursor(self.path, field) as values:
+            with arcpy.da.SearchCursor(self.path, fieldslist[0]) as values:
                 for value in values:
                     if value[0] in value_set:
                         dup_set.add(value[0])
@@ -229,30 +259,22 @@ class TableObj(object):
             return dup_set
 
         except arcpy.ExecuteError:
-            output_msg(arcpy.GetMessages(2))
+            arc_msg = arcpy.GetMessages(2)
+            output_msg(arc_msg)
+            raise RuntimeError(arc_msg)
         except Exception as e:
-            output_msg(e.args[0])
+            err_msg = str(e)
+            output_msg(err_msg)
+            raise
 
-    def find_duplicate_field_values_as_df(path, fields):
-        """Return set of unique field values
-            :param path {String}:
-                path to data
+    def find_duplicate_field_values_as_df(self, fields):
+        """Return duplicate values as a Pandas DataFrame.
             :param field [{String}]:
                 list of name(s) of fields to parse
             :return Pandas DataFrame of values which are duplicated in the field with count > 1 (ignores Null values).
             Use Pandas DataFrame <result>.to_csv() to export to file
         """
-        if not isinstance(fields, list):
-            fieldslist = [fields]
-        else:
-            fieldslist = fields
-        
-        import pandas
-        data = arcpy.da.TableToNumPyArray(path, fieldslist, null_value='NULL')
-        df = pandas.DataFrame(data)
-        count = df.groupby(fields).size().reset_index().rename(columns={0:'count'})
-        dups = count[count['count'] > 1]
-        return dups
+        return self.find_duplicate_field_values(fields, output='df')
     
     def export_schema_to_csv(self, path):
         """Create a csv schema report of all fields in a featureclass,
@@ -381,10 +403,12 @@ class TableObj(object):
 
 def export_field_sets(fc_list, out_xlsx, ignore_fields=None, use_lyr_alias=True):
     """Export unique field values for each layer in a list to an Excel file with one sheet per layer.
-    :param fc_list: list of feature class or table paths
+    :param fc_list: list (or single input) of feature class/table paths, path-like values, or objects with .path/.catalogPath/.dataSource
     :param out_xlsx: path to output Excel file
     :param ignore_fields: list of lowercase fields to ignore (e.g. ['objectid', 'shape'])
-    :param use_lyr_alias: if True, use layer alias for sheet name
+    :param use_lyr_alias:
+        If True, worksheet names prefer object name/alias (human-readable).
+        If False, worksheet names use table path (traceable/debug-friendly).
     """
     from openpyxl import Workbook
 
@@ -392,8 +416,7 @@ def export_field_sets(fc_list, out_xlsx, ignore_fields=None, use_lyr_alias=True)
         ignore_fields = ["objectid", "globalid"]
     ignore_fields = {v.lower() for v in ignore_fields}
 
-    if not isinstance(fc_list, (list, tuple, set)):
-        fc_list = [fc_list]
+    fc_list = normalize_to_sequence(fc_list)
 
     wb = Workbook()
     # Remove the default sheet that openpyxl creates
@@ -403,13 +426,14 @@ def export_field_sets(fc_list, out_xlsx, ignore_fields=None, use_lyr_alias=True)
     # Loop through layers and create a sheet per layer
     for lyr in fc_list:
         tbl = TableObj(lyr)
-        print(f'Processing name: {tbl.name}, alias: {str(lyr)}')
+        alias = input_display_name(lyr, default_name=tbl.name)
+        print(f'Processing name: {tbl.name}, alias: {alias}')
 
         # Excel sheet name must be <= 31 chars and cannot contain: : \ / ? * [ ]
         if use_lyr_alias:
-            raw_name = str(lyr)
+            raw_name = alias
         else:
-            raw_name = str(tbl.name) if hasattr(tbl, "name") else str(lyr)
+            raw_name = str(tbl.path)
         safe_name = "".join(ch for ch in raw_name if ch not in r':\/?*[]')
         safe_name = safe_name[:31] if len(safe_name) > 31 else safe_name
         if not safe_name:
@@ -424,25 +448,31 @@ def export_field_sets(fc_list, out_xlsx, ignore_fields=None, use_lyr_alias=True)
 
 def compare_schema(fc1, fc2):
     """compare the schemas of two tables. Return an array of results.
-    :param fc1 {String}:
-            Path or reference to feature class or table.
-    :param fc2 {String}:
-            Path or reference to feature class or table.
+    :param fc1 {String|pathlike|TableObj|layer object}:
+        Path or reference to feature class or table.
+    :param fc2 {String|pathlike|TableObj|layer object}:
+        Path or reference to feature class or table.
     :return array of results (field not found, field same, etc)
+
+    Notes:
+        Constructor acceptance is preserved. Both inputs are coerced by TableObj,
+        and invalid paths raise ValueError("invalid path").
     """
     result_arr= []
     fcobj1 = TableObj(fc1)
     fcobj2 = TableObj(fc2)
+    src1 = fcobj1.path
+    src2 = fcobj2.path
     field_dict1 = fcobj1.field_dict
     field_dict2 = fcobj2.field_dict
     for ifield in sorted(set(list(field_dict1.keys()) + list(field_dict2.keys()))):
         # check name for missing fields first
         if not ifield in field_dict1:
-            the_result = "{0} not found in {1}".format(ifield, fc1)
+            the_result = "{0} not found in {1}".format(ifield, src1)
             output_msg(the_result)
             result_arr.append(the_result)
         elif not ifield in field_dict2:
-            the_result = "{0} not found in {1}".format(ifield, fc2)
+            the_result = "{0} not found in {1}".format(ifield, src2)
             output_msg(the_result)
             result_arr.append(the_result)
         else:
@@ -453,7 +483,7 @@ def compare_schema(fc1, fc2):
                 result_arr.append(the_result)
             else:
                 the_result = "Field Mismatch {}: ({}, {}) ".format(
-                    ifield, fc1, fc2)
+                    ifield, src1, src2)
                 for k in field_dict1[ifield]:
                     if field_dict1[ifield][k] != field_dict2[ifield][k]:
                         the_result += '{}: ({}, {}) '.format(k, field_dict1[ifield][k], field_dict2[ifield][k])

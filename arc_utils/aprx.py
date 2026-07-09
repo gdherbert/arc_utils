@@ -3,20 +3,28 @@
 """
 
 import arcpy
+import os
+from ._inputs import resolve_aprx_path
 
 class AprxObj(object):
     """ provide methods for working with a ArcGIS Pro aprx file
     all standard arcpy methods are available via .aprx
     Usage: pro_doc = arc_utils.aprx.AprxObj(path)
     :param
-        path: a string representing an aprx file, 
-        or "CURRENT" if used in ArcGIS Pro Python window
+        path: aprx input accepted as
+            - string path
+            - pathlib.Path / os.PathLike
+            - wrapper object exposing .path
+            - "CURRENT" if used in ArcGIS Pro Python window
+        invalid paths raise ValueError("invalid path")
     """
     def __init__(self, aprx_path):
         """ :param path to aprx or "CURRENT"
         """
-        self.aprx = arcpy.mp.ArcGISProject(aprx_path)
-        self.path = aprx_path
+        self.path = resolve_aprx_path(aprx_path, arg_name="aprx_path")
+        if self.path != "CURRENT" and not os.path.exists(self.path):
+            raise ValueError("invalid path")
+        self.aprx = arcpy.mp.ArcGISProject(self.path)
         self.maps = self.get_maps()
         self.layouts = self.get_layouts()
         

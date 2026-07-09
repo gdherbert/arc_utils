@@ -6,18 +6,25 @@ import os
 import arcpy
 from .output import get_valid_output_path
 from .output import output_msg
+from ._inputs import ensure_valid_path
+from ._inputs import normalize_to_sequence
+from ._inputs import resolve_dataset_path
 
 class GDBObj(object):
     """ provide properties for working with a GDB
     Usage: gdb = arc_utils.gdb.GDBObj(path)
     :param
-        path: a string representing a GDB connection/path
+        path: geodatabase input accepted as
+            - string path
+            - pathlib.Path / os.PathLike
+            - wrapper object exposing .path
+            - ArcGIS object exposing .catalogPath or .dataSource
     """
     def __init__(self, gdb_path):
         """ sets up reference to table
         adds properties and methods
         """
-        self.path = gdb_path
+        self.path = ensure_valid_path(resolve_dataset_path(gdb_path, arg_name="gdb_path"))
         self.describe_obj = self._describe_object()
         self.feature_classes = self.get_feature_class_names()
         self.tables = self.get_table_names()
@@ -77,8 +84,8 @@ def report_all_fc_as_text(geodatabase, output_file=None, sep='\t'):
     """Create a text report of all fields in all featureclasses/tables from a geodatabase
     to specified output file.
 
-    :param geodatabase {String}
-        Path or reference to a geodatabase.
+    :param geodatabase {String|pathlike|object}
+        Geodatabase path or object reference.
     
     :param output_file {String}
         Path or reference to a text file. If not supplied defaults to gdb directory.
@@ -88,6 +95,7 @@ def report_all_fc_as_text(geodatabase, output_file=None, sep='\t'):
     """
     default_env = arcpy.env.workspace
     try:
+        geodatabase = ensure_valid_path(resolve_dataset_path(geodatabase, arg_name="geodatabase"))
         desc = arcpy.Describe(geodatabase)
         arcpy.env.workspace = geodatabase
         if not output_file:
@@ -124,7 +132,7 @@ def report_all_fc_as_text(geodatabase, output_file=None, sep='\t'):
 
             for dataset in datasets:
                 for fc in arcpy.ListFeatureClasses(feature_dataset=dataset):
-                    output_msg("Processing Dataset: {0} \ FeatureClass: {1}".format(dataset, fc))
+                    output_msg("Processing Dataset: {0} \\ FeatureClass: {1}".format(dataset, fc))
                     try:
                         fields = arcpy.ListFields(fc)
                         str_output = ""
@@ -151,15 +159,18 @@ def export_all_domains(geodatabase, workspace=None):
     """Output all the domains in a geodatabase
     to tables in a workspace.
 
-    :param geodatabase {String}:
+    :param geodatabase {String|pathlike|object}:
         Path or reference to input geodatabase.
     
-    :param workspace {String}: Optional
+    :param workspace {String|pathlike|object}: Optional
         Path to output folder or geodatabase. Defaults to input geodatabase.
     """
     try:
+        geodatabase = ensure_valid_path(resolve_dataset_path(geodatabase, arg_name="geodatabase"))
         if not workspace:
             workspace = geodatabase
+        else:
+            workspace = resolve_dataset_path(workspace, arg_name="workspace")
         domains = arcpy.da.ListDomains(geodatabase)
         for domain in domains:
             dname = arcpy.ValidateTableName(domain.name + '_domain', workspace)
@@ -179,13 +190,20 @@ def export_all_domains(geodatabase, workspace=None):
 def import_tables_as_domains(tables, geodatabase):
     """import tables as domains into geodatabase. Expects fields 'codedValues' and 'description'
     
-    :param tables {string}
-        path or array of paths of input tables containing domain data
+    :param tables {string|pathlike|object|array}
+        table path/object or array of table paths/objects containing domain data
     
-    :param geodatabase
-        Path or reference to geodatabase."""
+    :param geodatabase {String|pathlike|object}
+        Path or reference to geodatabase.
+
+    Notes:
+        Single string inputs are treated as a single table path (not iterated per character).
+        Invalid paths raise ValueError("invalid path").
+    """
     try:
-        for table in tables:
+        geodatabase = ensure_valid_path(resolve_dataset_path(geodatabase, arg_name="geodatabase"))
+        for table in normalize_to_sequence(tables):
+            table = ensure_valid_path(resolve_dataset_path(table, arg_name="tables"))
             desc = arcpy.Describe(table)
             dname = desc.name.replace("_domain", "")
             arcpy.TableToDomain_management(table, "codedValues", "description", geodatabase, dname)
