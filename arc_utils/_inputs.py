@@ -34,18 +34,29 @@ def resolve_dataset_path(value, arg_name="value"):
 
     Supported inputs:
     - str and pathlib.Path / os.PathLike
+    - ArcGIS Pro layer-name strings (resolved via arcpy.Describe(...).catalogPath)
     - objects exposing .path (wrapper objects)
     - ArcGIS Pro map/layer objects exposing .catalogPath or .dataSource
     """
+    def _resolve_candidate(candidate):
+        """Resolve map layer names and object references to catalog paths."""
+        try:
+            desc = arcpy.Describe(candidate)
+            if hasattr(desc, "catalogPath") and desc.catalogPath:
+                return os.path.abspath(desc.catalogPath)
+        except Exception:
+            pass
+        return os.path.abspath(candidate)
+
     for attr in ("path", "catalogPath", "dataSource"):
         if hasattr(value, attr):
             candidate = _to_path_str(getattr(value, attr))
             if candidate:
-                return os.path.abspath(candidate)
+                return _resolve_candidate(candidate)
 
     direct = _to_path_str(value)
     if direct:
-        return os.path.abspath(direct)
+        return _resolve_candidate(direct)
 
     raise TypeError("{} must be a path-like string or object with a valid path".format(arg_name))
 
