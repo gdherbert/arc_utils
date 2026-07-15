@@ -40,33 +40,63 @@ def output_msg(msg, severity=0):
         pass
 
 
-def get_valid_output_path(path, folder_reqd=True, make_dir=True):
-    """ return a valid path for an output, eg a folder path.
+def get_valid_output_path(path, folder_reqd=True, make_dir=True, default_to_user_folder=True):
+    """ return a valid path or empty string if not valid.
     If folder_reqd is True (default) and a gdb is passed as path,
-    will drop down to the folder containing gdb.
-    If path does not exist and make_dir is True (default)
-    folder will be created.
-    Otherwise will default to userprofile\documents folder
+       will return the folder containing gdb.
+    If path does not exist and make_dir is True (default), path will be created.
+    If default_to_user_folder is True (default), will default to userprofile\documents
     path {String}:
         filepath
     folder_reqd {Boolean}:
-        returned path must be a folder
+        returned path must be a folder, not a .gdb
     make_dir {Boolean}:
         make the directory if not exists
-    :return path
+    default_to_user_folder {Boolean}:
+        if path not valid, default to userprofile\documents folder (if available)
+    :return path or empty string
     """
+    def _fallback_user_folder():
+        if not default_to_user_folder:
+            return ''
+        user_profile = os.environ.get('USERPROFILE') or os.path.expanduser('~')
+        if not user_profile:
+            return ''
+        docs_dir = os.path.join(user_profile, 'Documents')
+        if os.path.isdir(docs_dir):
+            return docs_dir
+        if os.path.isdir(user_profile):
+            return user_profile
+        return ''
+
+    try:
+        path = os.fspath(path)
+    except (TypeError, ValueError):
+        return _fallback_user_folder()
+
+    if not path:
+        return _fallback_user_folder()
+
+    path = os.path.abspath(os.path.expanduser(path))
     report_dir = path
+
     if os.path.isdir(path):
-        if folder_reqd:
-            if path.lower().endswith(".gdb"):
+        if folder_reqd and path.lower().endswith('.gdb'):
+            try:
                 report_dir = arcpy.Describe(path).Path
+            except Exception:
+                return _fallback_user_folder()
     elif make_dir:
-        os.makedirs(path)
-        report_dir = path
+        try:
+            os.makedirs(path)
+            report_dir = path
+        except OSError:
+            return _fallback_user_folder()
     else:
-        report_dir = os.environ['USERPROFILE']
-        if os.path.exists(report_dir + "\\Documents"):
-            report_dir = report_dir + "\\Documents"
+        return _fallback_user_folder()
+
+    if not os.path.isdir(report_dir):
+        return _fallback_user_folder()
 
     return report_dir
 
