@@ -6,7 +6,7 @@ import os
 import arcpy
 
 
-def normalize_to_sequence(values):
+def _normalize_to_sequence(values):
     """Return a list from single or multi-value inputs.
 
     Strings and path-like values are treated as a single item.
@@ -29,7 +29,7 @@ def _to_path_str(value):
     return value
 
 
-def resolve_dataset_path(value, arg_name="value"):
+def _resolve_dataset_path(value, arg_name="value"):
     """Resolve supported dataset inputs to a path string.
 
     Supported inputs:
@@ -61,7 +61,7 @@ def resolve_dataset_path(value, arg_name="value"):
     raise TypeError("{} must be a path-like string or object with a valid path".format(arg_name))
 
 
-def resolve_aprx_path(value, arg_name="value"):
+def _resolve_aprx_path(value, arg_name="value"):
     """Resolve Aprx path input, preserving CURRENT special value."""
     direct = _to_path_str(value)
     if isinstance(direct, str) and direct.upper() == "CURRENT":
@@ -81,14 +81,14 @@ def resolve_aprx_path(value, arg_name="value"):
     raise TypeError("{} must be a path-like string or object with a valid path".format(arg_name))
 
 
-def ensure_valid_path(path):
+def _ensure_valid_path(path):
     """Validate ArcGIS path-like input and raise a consistent error."""
     if not arcpy.Exists(path):
         raise ValueError("invalid path")
     return path
 
 
-def input_display_name(value, default_name=None):
+def _input_display_name(value, default_name=None):
     """Best-effort human-readable name for logs and worksheet names."""
     for attr in ("name",):
         if hasattr(value, attr):

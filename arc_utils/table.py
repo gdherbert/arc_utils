@@ -5,10 +5,10 @@ from __future__ import print_function, unicode_literals, absolute_import
 import arcpy
 from .output import get_valid_output_path
 from .output import output_msg
-from ._inputs import ensure_valid_path
-from ._inputs import input_display_name
-from ._inputs import normalize_to_sequence
-from ._inputs import resolve_dataset_path
+from ._inputs import _ensure_valid_path
+from ._inputs import _input_display_name
+from ._inputs import _normalize_to_sequence
+from ._inputs import _resolve_dataset_path
 
 
 class TableObj(object):
@@ -27,7 +27,7 @@ class TableObj(object):
         Raises:
             ValueError: invalid path
         """
-        self.path = ensure_valid_path(resolve_dataset_path(table_path, arg_name="table_path"))
+        self.path = _ensure_valid_path(_resolve_dataset_path(table_path, arg_name="table_path"))
         self.describe_obj = self._describe_object()
         self.name = self._get_fc_name()
         self.type = self._get_fc_type()
@@ -416,7 +416,7 @@ def export_field_sets(fc_list, out_xlsx, ignore_fields=None, use_lyr_alias=True)
         ignore_fields = ["objectid", "globalid"]
     ignore_fields = {v.lower() for v in ignore_fields}
 
-    fc_list = normalize_to_sequence(fc_list)
+    fc_list = _normalize_to_sequence(fc_list)
 
     wb = Workbook()
     # Remove the default sheet that openpyxl creates
@@ -426,7 +426,7 @@ def export_field_sets(fc_list, out_xlsx, ignore_fields=None, use_lyr_alias=True)
     # Loop through layers and create a sheet per layer
     for lyr in fc_list:
         tbl = TableObj(lyr)
-        alias = input_display_name(lyr, default_name=tbl.name)
+        alias = _input_display_name(lyr, default_name=tbl.name)
         print(f'Processing name: {tbl.name}, alias: {alias}')
 
         # Excel sheet name must be <= 31 chars and cannot contain: : \ / ? * [ ]

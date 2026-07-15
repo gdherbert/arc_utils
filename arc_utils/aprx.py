@@ -4,7 +4,7 @@
 
 import arcpy
 import os
-from ._inputs import resolve_aprx_path
+from ._inputs import _resolve_aprx_path
 
 class AprxObj(object):
     """ provide methods for working with a ArcGIS Pro aprx file
@@ -21,7 +21,7 @@ class AprxObj(object):
     def __init__(self, aprx_path):
         """ :param path to aprx or "CURRENT"
         """
-        self.path = resolve_aprx_path(aprx_path, arg_name="aprx_path")
+        self.path = _resolve_aprx_path(aprx_path, arg_name="aprx_path")
         if self.path != "CURRENT" and not os.path.exists(self.path):
             raise ValueError("invalid path")
         self.aprx = arcpy.mp.ArcGISProject(self.path)
