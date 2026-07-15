@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """utilities for working with geodatabases and reporting on geodatabase contents
 """
-from __future__ import print_function, unicode_literals, absolute_import
 import os
 import arcpy
 from .output import get_valid_output_path
@@ -100,6 +99,8 @@ def report_all_fc_as_text(geodatabase, output_file=None, sep='\t'):
         arcpy.env.workspace = geodatabase
         if not output_file:
             path = get_valid_output_path(desc.Path)
+            if not path:
+                raise ValueError("invalid output path")
             output_file = os.path.join(path, desc.name.split(".")[0] + ".txt")
 
         output_msg("Writing to: {0}".format(output_file))

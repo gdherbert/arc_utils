@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """utilities for working with tables, featureclasses and fields
 """
-from __future__ import print_function, unicode_literals, absolute_import
 import arcpy
 from .output import get_valid_output_path
 from .output import output_msg
@@ -300,6 +299,8 @@ class TableObj(object):
             fc_type = self.type
 
             report_dir = get_valid_output_path(path)
+            if not report_dir:
+                raise ValueError("invalid output path")
             out_file_name = self.name + "_Field_Report " + start_date_string + ".csv"
             out_file_path = os.path.join(report_dir, out_file_name)
             output_msg("Report file: {0}".format(out_file_path))

@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """output related utilities
 """
-from __future__ import print_function, unicode_literals, absolute_import
 import arcpy
 import os
 
@@ -75,6 +74,8 @@ def get_valid_output_path(path, folder_reqd=True, make_dir=True):
 def output_to_file(data, path, filename):
     """send result string to file"""
     path = get_valid_output_path(path)
+    if not path:
+        raise ValueError("invalid output path")
     output_file = os.path.join(path, filename)
     with open(output_file, "w") as output:
-        output_file.write('{}').format(data)
+        output.write('{}'.format(data))
