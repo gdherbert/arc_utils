@@ -40,24 +40,24 @@ def output_msg(msg, severity=0):
         pass
 
 
-def get_valid_output_path(path, folder_reqd=True, make_dir=True, default_to_user_folder=True):
+def get_valid_output_path(path, return_folder_only=True, make_dir=True, fallback_to_user_folder=True):
     """ return a valid path or empty string if not valid.
-    If folder_reqd is True (default) and a gdb is passed as path,
+    If return_folder_only is True (default) and a gdb is passed as path,
        will return the folder containing gdb.
-    If path does not exist and make_dir is True (default), path will be created.
-    If default_to_user_folder is True (default), will default to userprofile\documents
+    If make_dir is True (default), path will be created if it doesn't exist..
+    If fallback_to_user_folder is True (default), will fallback to userprofile\documents folder
     path {String}:
         filepath
-    folder_reqd {Boolean}:
+    return_folder_only {Boolean}:
         returned path must be a folder, not a .gdb
     make_dir {Boolean}:
         make the directory if not exists
-    default_to_user_folder {Boolean}:
-        if path not valid, default to userprofile\documents folder (if available)
+    fallback_to_user_folder {Boolean}:
+        if path not valid, fallback to userprofile\documents folder (if available)
     :return path or empty string
     """
     def _fallback_user_folder():
-        if not default_to_user_folder:
+        if not fallback_to_user_folder:
             return ''
         user_profile = os.environ.get('USERPROFILE') or os.path.expanduser('~')
         if not user_profile:
@@ -81,7 +81,7 @@ def get_valid_output_path(path, folder_reqd=True, make_dir=True, default_to_user
     report_dir = path
 
     if os.path.isdir(path):
-        if folder_reqd and path.lower().endswith('.gdb'):
+        if return_folder_only and path.lower().endswith('.gdb'):
             try:
                 report_dir = arcpy.Describe(path).Path
             except Exception:
