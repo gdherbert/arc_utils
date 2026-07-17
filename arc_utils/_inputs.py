@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 """Shared input coercion helpers for arc_utils."""
-from __future__ import absolute_import
-
 import os
 import arcpy
 
