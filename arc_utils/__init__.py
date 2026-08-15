@@ -1,6 +1,12 @@
 """A collection of python utilities for ArcGIS Pro
 """
-__version__ = '1.1'
+from importlib.metadata import PackageNotFoundError, version
+
+try:
+	__version__ = version('arc-utils')
+except PackageNotFoundError:
+	__version__ = '0+unknown'
+
 __author__ = 'Grant Herbert'
 
 __all__ = ['aprx.py', 'gdb.py', 'table.py']
