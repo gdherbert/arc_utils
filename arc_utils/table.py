@@ -20,6 +20,7 @@ class TableObj(object):
             - wrapper object exposing .path
             - ArcGIS layer/table object exposing .catalogPath or .dataSource
     """
+    #TODO handle service URL paths (e.g. AGOL hosted feature layers) and other non-file geodatabase paths
     def __init__(self, table_path):
         """Set up table reference and load schema metadata.
 
@@ -34,9 +35,10 @@ class TableObj(object):
         self.fields = self._list_field_names()
         self.fields2 = self._list_field_names(required=False)
         self.fieldaliases = self._list_field_names(aliases=True)
+        self.record_count = self.get_feature_count()
         self.ignore_fields = ["objectid", "globalid","fid", "shape", "shape_area", "shape.area", "shape.starea()", "shape_length", "shape.len", "shape.stlength()"]
-        
 
+    
     def _describe_object(self):
         """ returns describe object"""
         return arcpy.Describe(self.path)
@@ -86,6 +88,10 @@ class TableObj(object):
             }
         return field_dict
 
+    def get_feature_count(self):
+        """Return the number of features/rows in the table."""
+        return int(arcpy.GetCount_management(self.path).getOutput(0))
+    
     def get_field_info_as_text(self, sep="\t"):
         """ Create a delimeter separated output of a table's fields and their properties
             :param sep {String}
@@ -212,10 +218,12 @@ class TableObj(object):
 
         return set(result)
 
-    def find_duplicate_field_values(self, field, charset='ascii', output='set'):
+    def find_duplicate_field_values(self, field, threshold=2, charset='ascii', output='set'):
         """Return duplicate values from one or more fields.
             :param field {String|[String]}:
                 field name (or list of field names when output='df')
+            :param threshold {int}:
+                minimum number of instances to count as duplicate (default = 2)
             :param: charset {String}:
                 character set to use (default = 'ascii').
                 Valid values are those in the Python documentation for string encode.
@@ -242,19 +250,20 @@ class TableObj(object):
                 df = pandas.DataFrame(rows, columns=fieldslist)
                 # Keep null combinations in duplicate grouping across mixed field types.
                 count = df.groupby(fieldslist, dropna=False).size().reset_index(name='count')
-                return count[count['count'] > 1]
+                return count[count['count'] >= threshold]
 
             if len(fieldslist) != 1:
                 raise ValueError("field must be a single field when output='set'")
 
             dup_set = set()  # set to hold duplicate values
-            value_set = set()  # set to hold unique values
+            value_count = {}  # dictionary to hold value counts
             with arcpy.da.SearchCursor(self.path, fieldslist[0]) as values:
                 for value in values:
-                    if value[0] in value_set:
-                        dup_set.add(value[0])
-                    else:
-                        value_set.add(value[0])
+                    val = value[0]
+                    value_count[val] = value_count.get(val, 0) + 1
+            for value in value_count:
+                if value_count[value] >= threshold:
+                    dup_set.add(value)
             return dup_set
 
         except arcpy.ExecuteError:
@@ -266,14 +275,16 @@ class TableObj(object):
             output_msg(err_msg)
             raise
 
-    def find_duplicate_field_values_as_df(self, fields):
+    def find_duplicate_field_values_as_df(self, fields, threshold=2):
         """Return duplicate values as a Pandas DataFrame.
-            :param field [{String}]:
+            :param fields [{String}]:
                 list of name(s) of fields to parse
-            :return Pandas DataFrame of values which are duplicated in the field with count > 1 (ignores Null values).
+            :param threshold [int]:
+                minimum count for a value to be considered a duplicate (default = 2)
+            :return Pandas DataFrame of values which are duplicated in the field with count > threshold (ignores Null values).
             Use Pandas DataFrame <result>.to_csv() to export to file
         """
-        return self.find_duplicate_field_values(fields, output='df')
+        return self.find_duplicate_field_values(fields, threshold, output='df')
     
     def export_schema_to_csv(self, path):
         """Create a csv schema report of all fields in a featureclass,
@@ -385,7 +396,7 @@ class TableObj(object):
 
         return nt(field_in_domain, field_out_domain)
 
-    def pretty_print(self):
+    def pretty_print_fields(self):
         """ pretty print a table's fields and their properties
         """
         def _print(l):
@@ -396,8 +407,8 @@ class TableObj(object):
                 'required', 'scale', ]
         _print(atts)
 
-        for f in arcpy.ListFields(self.path):
-            _print(["{:>12}".format(getattr(f, i)) for i in atts])
+        for field in self.field_dict.values():
+            _print(["{:>12}".format(field[i]) for i in atts])
 
 
 
@@ -504,6 +515,6 @@ def import_schema_to_fc(csv_file, fc_name):
     # ignore OBJECTID, SHAPE
     fields_to_ignore =["OBJECTID", "GLOBALID","FID", "SHAPE", "SHAPE_AREA", "SHAPE.AREA", "SHAPE.STAREA()", "SHAPE_LENGTH", "SHAPE.LEN", "SHAPE.STLENGTH()"]
     # create fc from fc_name
-    # add fields from field list
+    # add fields from field list if not in ignore list
     # arcpy.AddField_management(in_table, field_name, field_type, {field_precision}, {field_scale}, {field_length}, {field_alias}, {field_is_nullable}, {field_is_required}, {field_domain})
     return None
