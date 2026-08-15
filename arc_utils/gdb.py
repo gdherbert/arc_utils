@@ -8,6 +8,7 @@ from .output import output_msg
 from ._inputs import _ensure_valid_path
 from ._inputs import _normalize_to_sequence
 from ._inputs import _resolve_dataset_path
+from .table import TableObj
 
 class GDBObj(object):
     """ provide properties for working with a GDB
@@ -25,14 +26,30 @@ class GDBObj(object):
         """
         self.path = _ensure_valid_path(_resolve_dataset_path(gdb_path, arg_name="gdb_path"))
         self.describe_obj = self._describe_object()
-        self.feature_classes = self.get_feature_class_names()
-        self.tables = self.get_table_names()
+        self.feature_class_objs = self.get_feature_class_objs()
+        self.feature_class_names = self.get_feature_class_names()
+        self.table_objs = self.get_table_objs()
+        self.table_names = self.get_table_names()
         self.domain_names = self.get_all_domain_names()
 
     def _describe_object(self):
         """ returns describe object"""
         return arcpy.Describe(self.path)
         
+    def get_feature_class_objs(self):
+        """ return a list of all the featureclasses as objects"""
+        fc_list = []
+        temp_ws = arcpy.env.workspace
+        arcpy.env.workspace = self.path
+        datasets = arcpy.ListDatasets(feature_type='feature')
+        datasets = [''] + datasets if datasets is not None else []
+        for dataset in datasets:
+            for fc in arcpy.ListFeatureClasses(feature_dataset=dataset):
+                #fc_list.append(TableObj(os.path.join(self.path, dataset, fc)))
+                fc_list.append(TableObj(os.path.join(self.path, fc)))
+        arcpy.env.workspace = temp_ws
+        return fc_list
+
     def get_feature_class_names(self):
         """ get a list of all the featureclass names"""
         fc_list = []
@@ -46,6 +63,17 @@ class GDBObj(object):
         arcpy.env.workspace = temp_ws
         return fc_list
         
+    def get_table_objs(self):
+        """ get a list of all the tables as objects"""
+        tbl_list = []
+        temp_ws = arcpy.env.workspace
+        arcpy.env.workspace = self.path
+        tbls = arcpy.ListTables()
+        for tbl in tbls:
+            tbl_list.append(TableObj(os.path.join(self.path, tbl)))
+        arcpy.env.workspace = temp_ws
+        return tbl_list
+
     def get_table_names(self):
         """ get a list of all the table names"""
         tbl_list = []
@@ -65,7 +93,7 @@ class GDBObj(object):
         return domain_names
 
     def OID_check(self):
-        for fc in self.feature_classes:
+        for fc in self.feature_class_paths:
             oidfield = ''
             tmp = arcpy.Describe(fc)
             if tmp.hasOID:
