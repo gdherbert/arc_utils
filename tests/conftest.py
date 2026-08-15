@@ -75,10 +75,16 @@ def testdatabase(request, testgdb):
                 lat = 47.6 + float(random.randint(-9, 9)) / 100
                 cursor.insertRow([key, val, (lon, lat)])
 
-    result = collections.namedtuple('testdata', 'gdb, test_fc1, test_fc2')
+    table_name = 'test_table'
+    arcpy.CreateTable_management(testgdbpath, table_name)
+    table_path = os.path.join(testgdbpath, table_name)
+    arcpy.AddField_management(table_path, 'table_value', 'TEXT')
+
+    result = collections.namedtuple('testdata', 'gdb, test_fc1, test_fc2, table')
     result.gdb = testgdbpath
     result.fc1 = fc_paths[0]
     result.fc2 = fc_paths[1]
+    result.table = table_path
 
     def testdata_teardown():
         print('Deleting test geodatabase')
