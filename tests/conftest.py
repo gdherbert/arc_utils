@@ -56,7 +56,19 @@ def testdatabase(request, testgdb):
         for fc_field in fc_fields:
             arcpy.AddField_management(fc, *fc_field)
         print("loading data")
-        records = (("val1", None),("val1", 4), ("val1", 4), ("val2", 7), ("val02", 7), ("val1", 10), ("val2", 5), ("val1", 10), ("val2", 5), ("val1", None), (None, 5))
+        records = (
+            ("val1", None),
+            ("val1", 4), 
+            ("val1", 4), 
+            ("val2", 7), 
+            ("val02", 7), 
+            ("val1", 10), 
+            ("val2", 5), 
+            ("val1", 10),
+            ("val2", 5), 
+            ("val1", None), 
+            (None, 5)
+            )
         with arcpy.da.InsertCursor(fc, ["ftext", "fint", "SHAPE@XY"]) as cursor:
             for key, val in records:
                 lon = -122.3 + float(random.randint(-9, 9)) / 100

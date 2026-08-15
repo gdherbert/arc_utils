@@ -89,7 +89,6 @@ def test_tableobj_invalid_path_raises_valueerror():
 
 def test_export_fields_to_worksheet(testdatabase):
     from openpyxl import Workbook
-
     tbl = table.TableObj(testdatabase.fc1)
     wb = Workbook()
     ws = wb.active
@@ -104,6 +103,19 @@ def test_export_fields_to_worksheet(testdatabase):
     assert "ftext" in row_values
     assert "fint" in row_values
 
+def test_pretty_print_fields(testdatabase, capsys):
+    tbl = table.TableObj(testdatabase.fc1)
+    tbl.pretty_print_fields()
+    output = capsys.readouterr().out
+    lines = output.splitlines()
+
+    assert "name" in lines[0]
+    assert "aliasName" in lines[0]
+    assert "type" in lines[0]
+
+    assert any("OBJECTID" in line for line in lines)
+    assert any("ftext" in line for line in lines)
+    assert any("fint" in line for line in lines)
 
 def test_export_field_sets_accepts_pathlike_and_wrapper_inputs(testdatabase, tmp_path):
     out_xlsx = tmp_path / "field_sets.xlsx"
@@ -115,6 +127,17 @@ def test_export_field_sets_accepts_pathlike_and_wrapper_inputs(testdatabase, tmp
     table.export_field_sets(inputs, str(out_xlsx))
     assert out_xlsx.exists()
 
+def test_find_duplicate_field_values_set_output(testdatabase):
+    tbl = table.TableObj(testdatabase.fc1)
+    dups = tbl.find_duplicate_field_values("ftext", output="set")
+    assert isinstance(dups, set)
+    assert dups == set(["val1", "val2"])
+
+def test_find_duplicate_field_values_set_output_with_threshold(testdatabase):
+    tbl = table.TableObj(testdatabase.fc1)
+    dups = tbl.find_duplicate_field_values("ftext", output="set", threshold=4)
+    assert isinstance(dups, set)
+    assert dups == set(["val1"])
 
 def test_find_duplicate_field_values_dataframe_output(testdatabase):
     pandas = pytest.importorskip("pandas")
@@ -122,8 +145,39 @@ def test_find_duplicate_field_values_dataframe_output(testdatabase):
     dups = tbl.find_duplicate_field_values(["ftext", "fint"], output="df")
     assert isinstance(dups, pandas.DataFrame)
     assert "count" in dups.columns
+    assert dups["count"].min() > 1
 
     dups_alias = tbl.find_duplicate_field_values_as_df(["ftext", "fint"])
     assert isinstance(dups_alias, pandas.DataFrame)
     assert "count" in dups_alias.columns
+    assert dups_alias["count"].min() > 1
 
+
+def test_find_duplicate_field_values_dataframe_output_with_threshold(testdatabase):
+    threshold = 3
+    pandas = pytest.importorskip("pandas")
+    tbl = table.TableObj(testdatabase.fc1)
+    dups = tbl.find_duplicate_field_values(["ftext"], threshold=threshold, output="df")
+    assert isinstance(dups, pandas.DataFrame)
+    assert "count" in dups.columns
+    assert dups["count"].min() >= 3
+
+    dups_alias = tbl.find_duplicate_field_values_as_df(["ftext"], threshold=threshold)
+    assert isinstance(dups_alias, pandas.DataFrame)
+    assert "count" in dups_alias.columns
+    assert dups_alias["count"].min() >= 3
+
+
+def test_find_duplicate_field_values_dataframe_output_with_threshold_returns_empty(testdatabase):
+    threshold = 100
+    pandas = pytest.importorskip("pandas")
+    tbl = table.TableObj(testdatabase.fc1)
+    dups = tbl.find_duplicate_field_values(["ftext"], threshold=threshold, output="df")
+    assert isinstance(dups, pandas.DataFrame)
+    assert "count" in dups.columns
+    assert dups.empty
+
+    dups_alias = tbl.find_duplicate_field_values_as_df(["ftext"], threshold=threshold)
+    assert isinstance(dups_alias, pandas.DataFrame)
+    assert "count" in dups_alias.columns
+    assert dups_alias.empty
