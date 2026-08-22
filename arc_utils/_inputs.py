@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """Shared input coercion helpers for arc_utils."""
 import os
+import re
 import arcpy
 
 
@@ -27,6 +28,11 @@ def _to_path_str(value):
     return value
 
 
+def _is_service_url(value):
+    """True if value looks like a Portal/AGOL service URL rather than a filesystem path."""
+    return isinstance(value, str) and re.match(r"^https?://", value, re.IGNORECASE) is not None
+
+
 def _resolve_dataset_path(value, arg_name="value"):
     """Resolve supported dataset inputs to a path string.
 
@@ -35,16 +41,18 @@ def _resolve_dataset_path(value, arg_name="value"):
     - ArcGIS Pro layer-name strings (resolved via arcpy.Describe(...).catalogPath)
     - objects exposing .path (wrapper objects)
     - ArcGIS Pro map/layer objects exposing .catalogPath or .dataSource
+    - Portal/AGOL hosted feature service layers (catalogPath/dataSource is a URL, left unresolved)
     """
     def _resolve_candidate(candidate):
         """Resolve map layer names and object references to catalog paths."""
         try:
             desc = arcpy.Describe(candidate)
             if hasattr(desc, "catalogPath") and desc.catalogPath:
-                return os.path.abspath(desc.catalogPath)
+                catalog_path = desc.catalogPath
+                return catalog_path if _is_service_url(catalog_path) else os.path.abspath(catalog_path)
         except Exception:
             pass
-        return os.path.abspath(candidate)
+        return candidate if _is_service_url(candidate) else os.path.abspath(candidate)
 
     for attr in ("path", "catalogPath", "dataSource"):
         if hasattr(value, attr):
