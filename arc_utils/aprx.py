@@ -70,3 +70,11 @@ class AprxObj(object):
         for layer in map.listLayers():
             yield layer.name
 
+
+# instantiated on import so `arc_utils.aprx.current` is ready with autocomplete
+# (.maps, .layouts, etc.) in the ArcGIS Pro Python window; None outside Pro
+try:
+    current = AprxObj("CURRENT")
+except Exception:
+    current = None
+
