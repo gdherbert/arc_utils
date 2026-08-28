@@ -30,25 +30,28 @@ class AprxObj(object):
         
     def get_maps(self):
         """ :return array of map objects"""
-        map_array = []
+        map_dict = {}
         for map in self.aprx.listMaps():
-            map_array.append(map)
-        return map_array
+            map_dict[map.name] = {
+                "map": map,
+                "layers": self.get_layer_obj_as_dict(map)
+            }
+        return map_dict
 
     def get_layouts(self):
         """ :return array of layout objects"""
-        layout_array = []
+        layout_dict = {}
         for layout in self.aprx.listLayouts():
-            layout_array.append(layout)
-        return layout_array
+            layout_dict[layout.name] = layout
+        return layout_dict
 
-    def get_layer_obj_as_array(self, map):
+    def get_layer_obj_as_dict(self, map):
         """ :param: map object
-        :return array of layer objects in a specified map object"""
-        layer_obj_array = []
+        :return dict of layer objects in a specified map object"""
+        layer_obj_dict = {}
         for layer in map.listLayers():
-            layer_obj_array.append(layer)
-        return layer_obj_array
+            layer_obj_dict[layer.name] = layer
+        return layer_obj_dict
 
     def get_layer_names_as_array(self, map):
         """ :param: map object
