@@ -68,16 +68,20 @@ def _resolve_dataset_path(value, arg_name="value"):
 
 
 def _resolve_aprx_path(value, arg_name="value"):
-    """Resolve Aprx path input, preserving CURRENT special value."""
+    """Resolve Aprx path input, using CURRENT when the active project is unsaved."""
+    def _resolve_current():
+        current_path = getattr(arcpy.mp.ArcGISProject("CURRENT"), "filePath", None)
+        return os.path.abspath(current_path) if current_path else "CURRENT"
+
     direct = _to_path_str(value)
     if isinstance(direct, str) and direct.upper() == "CURRENT":
-        return "CURRENT"
+        return _resolve_current()
 
     for attr in ("path", "catalogPath", "dataSource"):
         if hasattr(value, attr):
             candidate = _to_path_str(getattr(value, attr))
             if isinstance(candidate, str) and candidate.upper() == "CURRENT":
-                return "CURRENT"
+                return _resolve_current()
             if candidate:
                 return os.path.abspath(candidate)
 
