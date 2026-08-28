@@ -19,8 +19,8 @@ class TableObj(object):
             - pathlib.Path / os.PathLike
             - wrapper object exposing .path
             - ArcGIS layer/table object exposing .catalogPath or .dataSource
+            - Portal/AGOL hosted feature service URL (e.g. https://.../FeatureServer/0)
     """
-    #TODO handle service URL paths (e.g. AGOL hosted feature layers) and other non-file geodatabase paths
     def __init__(self, table_path):
         """Set up table reference and load schema metadata.
 
@@ -91,6 +91,11 @@ class TableObj(object):
     def get_feature_count(self):
         """Return the number of features/rows in the table."""
         return int(arcpy.GetCount_management(self.path).getOutput(0))
+
+    def _order_by_clause(self):
+        """ORDER BY on the OID field, forcing SearchCursor to page past a service's maxRecordCount."""
+        oid_field = getattr(self.describe_obj, 'OIDFieldName', None)
+        return (None, 'ORDER BY {}'.format(oid_field)) if oid_field else None
     
     def get_field_info_as_text(self, sep="\t"):
         """ Create a delimeter separated output of a table's fields and their properties
@@ -120,7 +125,7 @@ class TableObj(object):
             result = ''
         else:
             result = 0
-        with arcpy.da.SearchCursor(self.path, field) as values:
+        with arcpy.da.SearchCursor(self.path, field, sql_clause=self._order_by_clause()) as values:
             for value in values:
                 if value[0] is not None:
                     val = value[0]
@@ -138,7 +143,7 @@ class TableObj(object):
             name of the field to parse
         """
         length = 0
-        with arcpy.da.SearchCursor(self.path, field) as values:
+        with arcpy.da.SearchCursor(self.path, field, sql_clause=self._order_by_clause()) as values:
             for value in values:
                 if value[0] is not None:
                     val = str(value[0])
@@ -156,7 +161,7 @@ class TableObj(object):
             raise ValueError("invalid path")
         try:
             value_set = set()  # set to hold unique values
-            with arcpy.da.SearchCursor(self.path, field) as values:
+            with arcpy.da.SearchCursor(self.path, field, sql_clause=self._order_by_clause()) as values:
                 for value in values:
                     if value[0] is None:
                         value_set.add("NULL")
@@ -211,15 +216,15 @@ class TableObj(object):
 
         result = set()
         
-        with arcpy.da.SearchCursor(self.path, fieldslist) as cursor:
+        with arcpy.da.SearchCursor(self.path, fieldslist, sql_clause=self._order_by_clause()) as cursor:
             for row in cursor:
-                parts = [('NULL' if v is None else str(v)) for v in row]
+                parts = [('<Null>' if v is None else str(v)) for v in row]
                 result.add(sep.join(parts))
 
         return set(result)
 
     def find_duplicate_field_values(self, field, threshold=2, charset='ascii', output='set'):
-        """Return duplicate values from one or more fields.
+        """Return duplicate values from one or more fields. Ignores Null
             :param field {String|[String]}:
                 field name (or list of field names when output='df')
             :param threshold {int}:
@@ -246,9 +251,12 @@ class TableObj(object):
         try:
             if output == 'df':
                 import pandas
-                rows = list(arcpy.da.SearchCursor(self.path, fieldslist))
+                rows = list(arcpy.da.SearchCursor(self.path, fieldslist, sql_clause=self._order_by_clause()))
                 df = pandas.DataFrame(rows, columns=fieldslist)
-                # Keep null combinations in duplicate grouping across mixed field types.
+                if len(fieldslist) == 1:
+                    df = df.dropna(subset=fieldslist)
+                else:
+                    df = df.dropna(subset=fieldslist, how='all')
                 count = df.groupby(fieldslist, dropna=False).size().reset_index(name='count')
                 return count[count['count'] >= threshold]
 
@@ -257,10 +265,11 @@ class TableObj(object):
 
             dup_set = set()  # set to hold duplicate values
             value_count = {}  # dictionary to hold value counts
-            with arcpy.da.SearchCursor(self.path, fieldslist[0]) as values:
+            with arcpy.da.SearchCursor(self.path, fieldslist[0], sql_clause=self._order_by_clause()) as values:
                 for value in values:
                     val = value[0]
-                    value_count[val] = value_count.get(val, 0) + 1
+                    if val is not None: # ignore Null values
+                        value_count[val] = value_count.get(val, 0) + 1
             for value in value_count:
                 if value_count[value] >= threshold:
                     dup_set.add(value)

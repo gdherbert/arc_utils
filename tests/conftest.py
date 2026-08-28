@@ -67,6 +67,7 @@ def testdatabase(request, testgdb):
             ("val1", 10),
             ("val2", 5), 
             ("val1", None), 
+            (None, 5),
             (None, 5)
             )
         with arcpy.da.InsertCursor(fc, ["ftext", "fint", "SHAPE@XY"]) as cursor:

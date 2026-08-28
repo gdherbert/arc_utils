@@ -50,7 +50,7 @@ def test_tableobj_multi_field_methods(testdatabase):
     tbl = table.TableObj(testdatabase.fc1)
     multi_field = tbl.get_multiple_field_value_set(['ftext', 'fint'])
     assert isinstance(multi_field, set)
-    assert sorted(multi_field) == [u'NULL:5', u'val02:7', u'val1:10', u'val1:4', u'val1:NULL', u'val2:5', u'val2:7']
+    assert sorted(multi_field) == [u'<Null>:5', u'val02:7', u'val1:10', u'val1:4', u'val1:<Null>', u'val2:5', u'val2:7']
    
     
 
@@ -133,6 +133,13 @@ def test_find_duplicate_field_values_set_output(testdatabase):
     assert isinstance(dups, set)
     assert dups == set(["val1", "val2"])
 
+def test_find_duplicate_field_values_set_output_null_handling(testdatabase):
+    tbl = table.TableObj(testdatabase.fc1)
+    dups = tbl.find_duplicate_field_values("ftext", output="set")
+    assert isinstance(dups, set)
+    assert None not in dups
+    assert dups == set(["val1", "val2"])
+
 def test_find_duplicate_field_values_set_output_with_threshold(testdatabase):
     tbl = table.TableObj(testdatabase.fc1)
     dups = tbl.find_duplicate_field_values("ftext", output="set", threshold=4)
@@ -151,6 +158,49 @@ def test_find_duplicate_field_values_dataframe_output(testdatabase):
     assert isinstance(dups_alias, pandas.DataFrame)
     assert "count" in dups_alias.columns
     assert dups_alias["count"].min() > 1
+
+
+def test_find_duplicate_field_values_dataframe_null_handling(testdatabase, monkeypatch):
+    pandas = pytest.importorskip("pandas")
+    tbl = table.TableObj(testdatabase.fc1)
+
+    class SearchCursor(object):
+        all_rows = [
+            ("val1", None),
+            ("val1", None),
+            ("val2", 1),
+            ("val2", 1),
+            (None, None),
+            (None, None),
+        ]
+
+        def __init__(self, fields):
+            self.rows = self.all_rows if len(fields) > 1 else [(row[0],) for row in self.all_rows]
+
+        def __iter__(self):
+            return iter(self.rows)
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc_value, traceback):
+            return False
+
+    monkeypatch.setattr(
+        table.arcpy.da,
+        "SearchCursor",
+        lambda table_path, fields, **kwargs: SearchCursor(fields),
+    )
+
+    single_field_dups = tbl.find_duplicate_field_values(["ftext"], output="df")
+    assert not single_field_dups["ftext"].isna().any()
+
+    multi_field_dups = tbl.find_duplicate_field_values(["ftext", "fint"], output="df")
+    partial_null_dups = multi_field_dups[
+        (multi_field_dups["ftext"] == "val1") & multi_field_dups["fint"].isna()
+    ]
+    assert partial_null_dups.iloc[0]["count"] == 2
+    assert not multi_field_dups[["ftext", "fint"]].isna().all(axis=1).any()
 
 
 def test_find_duplicate_field_values_dataframe_output_with_threshold(testdatabase):
