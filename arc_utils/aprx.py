@@ -29,21 +29,41 @@ class AprxObj(object):
         self.layouts = self.get_layouts()
         
     def get_maps(self):
-        """ :return array of map objects"""
+        """Return maps keyed by stable ArcGIS Pro URI."""
         map_dict = {}
-        for map in self.aprx.listMaps():
-            map_dict[map.name] = {
-                "map": map,
-                "layers": self.get_layer_obj_as_dict(map)
+        self.maps_by_name = {}
+        for index, map_obj in enumerate(self.aprx.listMaps()):
+            map_id = getattr(map_obj, "URI", None) or "map:{}".format(index)
+            entry = {
+                "name": map_obj.name,
+                "map": map_obj,
+                "layers": self.get_layer_obj_as_dict(map_obj)
             }
+            map_dict[map_id] = entry
+            self.maps_by_name.setdefault(map_obj.name, []).append(entry)
         return map_dict
 
+    def get_maps_by_name(self, name):
+        """Return all map entries with the requested name."""
+        return self.maps_by_name.get(name, [])
+
     def get_layouts(self):
-        """ :return array of layout objects"""
+        """Return layouts keyed by stable ArcGIS Pro URI."""
         layout_dict = {}
-        for layout in self.aprx.listLayouts():
-            layout_dict[layout.name] = layout
+        self.layouts_by_name = {}
+        for index, layout_obj in enumerate(self.aprx.listLayouts()):
+            layout_id = getattr(layout_obj, "URI", None) or "layout:{}".format(index)
+            entry = {
+                "name": layout_obj.name,
+                "layout": layout_obj
+            }
+            layout_dict[layout_id] = entry
+            self.layouts_by_name.setdefault(layout_obj.name, []).append(entry)
         return layout_dict
+
+    def get_layouts_by_name(self, name):
+        """Return all layout entries with the requested name."""
+        return self.layouts_by_name.get(name, [])
 
     def get_layer_obj_as_dict(self, map):
         """ :param: map object
