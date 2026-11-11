@@ -155,7 +155,7 @@ class TableObj(object):
         """Return set of unique field values
             :param field {String}:
                 name of the field to parse
-            :return set of unique values. Null values are represented as 'NULL' string
+            :return set of unique values. Ignores NULL
            """
         if not arcpy.Exists(self.path):
             raise ValueError("invalid path")
@@ -163,7 +163,7 @@ class TableObj(object):
         with arcpy.da.SearchCursor(self.path, field, sql_clause=self._order_by_clause()) as values:
             for value in values:
                 if value[0] is None:
-                    value_set.add("NULL")
+                    continue
                 else:
                     value_set.add(value[0])
         return value_set
