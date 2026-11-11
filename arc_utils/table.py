@@ -170,13 +170,14 @@ class TableObj(object):
 
     def export_fields_to_worksheet(self, worksheet, ignore_fields=None):
         """Write this table's field unique values to an openpyxl worksheet.
-        if ignore_fields is not provided, will use the default ignore_fields property of the object
-        if ignore_fields is provided, only those fields will be ignored
+        If ignore_fields is None, use this object's default ignore_fields.
+        Pass an empty list to ignore no fields, or a list with field names to ignore.
         :param worksheet: an openpyxl worksheet object to write to
         :param ignore_fields: a list of field names to ignore
         """
         if ignore_fields is None:
             ignore_fields = self.ignore_fields
+
         ignore_set = {v.lower() for v in ignore_fields}
 
         worksheet["A1"] = "Field"
@@ -403,16 +404,12 @@ def export_field_sets(fc_list, out_xlsx, ignore_fields=None, use_lyr_alias=True)
     """Export unique field values for each layer in a list to an Excel file with one sheet per layer.
     :param fc_list: list (or single input) of feature class/table paths, path-like values, or objects with .path/.catalogPath/.dataSource
     :param out_xlsx: path to output Excel file
-    :param ignore_fields: list of lowercase fields to ignore (e.g. ['objectid', 'shape'])
+    :param ignore_fields: fields to ignore; None uses each table's default ignore_fields, [] ignores no fields, or pass a custom list
     :param use_lyr_alias:
         If True, worksheet names prefer object name/alias (human-readable).
         If False, worksheet names use table path (traceable/debug-friendly).
     """
     from openpyxl import Workbook
-
-    if ignore_fields is None:
-        ignore_fields = ["objectid", "globalid"]
-    ignore_fields = {v.lower() for v in ignore_fields}
 
     fc_list = _normalize_to_sequence(fc_list)
 
@@ -424,6 +421,7 @@ def export_field_sets(fc_list, out_xlsx, ignore_fields=None, use_lyr_alias=True)
     # Loop through layers and create a sheet per layer
     for lyr in fc_list:
         tbl = TableObj(lyr)
+
         alias = _input_display_name(lyr, default_name=tbl.name)
         print(f'Processing name: {tbl.name}, alias: {alias}')
 
@@ -438,18 +436,23 @@ def export_field_sets(fc_list, out_xlsx, ignore_fields=None, use_lyr_alias=True)
             safe_name = "Sheet"
 
         ws = wb.create_sheet(title=safe_name)
-        tbl.export_fields_to_worksheet(ws, ignore_fields=ignore_fields)
+        fields_to_ignore = tbl.ignore_fields if ignore_fields is None else ignore_fields
+        tbl.export_fields_to_worksheet(ws, ignore_fields=fields_to_ignore)
     # Save workbook
     wb.save(out_xlsx)
     print(f"\nExcel file written to: {out_xlsx}")
 
 
-def compare_schema(fc1, fc2):
+def compare_schema(fc1, fc2, ignore_fields=None, compare_values=False):
     """compare the schemas of two tables. Return an array of results.
     :param fc1 {String|pathlike|TableObj|layer object}:
         Path or reference to feature class or table.
     :param fc2 {String|pathlike|TableObj|layer object}:
         Path or reference to feature class or table.
+    :param ignore_fields: fields to skip when compare_values is True; None uses both input tables'
+        default ignore_fields, [] skips none, or provide a custom list.
+    :param compare_values {bool}:
+        If True, compare set of field values as well.
     :return array of results (field not found, field same, etc)
 
     Notes:
@@ -459,6 +462,12 @@ def compare_schema(fc1, fc2):
     result_arr= []
     fcobj1 = TableObj(fc1)
     fcobj2 = TableObj(fc2)
+
+    if ignore_fields is None:
+        ignore_set = set(fcobj1.ignore_fields + fcobj2.ignore_fields)
+    else:
+        ignore_set = set(v.lower() for v in ignore_fields)
+
     src1 = fcobj1.path
     src2 = fcobj2.path
     field_dict1 = fcobj1.field_dict
