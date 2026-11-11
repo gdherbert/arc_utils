@@ -159,20 +159,14 @@ class TableObj(object):
            """
         if not arcpy.Exists(self.path):
             raise ValueError("invalid path")
-        try:
-            value_set = set()  # set to hold unique values
-            with arcpy.da.SearchCursor(self.path, field, sql_clause=self._order_by_clause()) as values:
-                for value in values:
-                    if value[0] is None:
-                        value_set.add("NULL")
-                    else:
-                        value_set.add(value[0])
-            return value_set
-
-        except arcpy.ExecuteError:
-            output_msg(arcpy.GetMessages(2))
-        except Exception as e:
-            output_msg(e.args[0])
+        value_set = set()  # set to hold unique values
+        with arcpy.da.SearchCursor(self.path, field, sql_clause=self._order_by_clause()) as values:
+            for value in values:
+                if value[0] is None:
+                    value_set.add("NULL")
+                else:
+                    value_set.add(value[0])
+        return value_set
 
     def export_fields_to_worksheet(self, worksheet, ignore_fields=None):
         """Write this table's field unique values to an openpyxl worksheet.
@@ -248,41 +242,31 @@ class TableObj(object):
         if output not in ['set', 'df']:
             raise ValueError("output must be either 'set' or 'df'")
 
-        try:
-            if output == 'df':
-                import pandas
-                rows = list(arcpy.da.SearchCursor(self.path, fieldslist, sql_clause=self._order_by_clause()))
-                df = pandas.DataFrame(rows, columns=fieldslist)
-                if len(fieldslist) == 1:
-                    df = df.dropna(subset=fieldslist)
-                else:
-                    df = df.dropna(subset=fieldslist, how='all')
-                count = df.groupby(fieldslist, dropna=False).size().reset_index(name='count')
-                return count[count['count'] >= threshold]
+        if output == 'df':
+            import pandas
+            rows = list(arcpy.da.SearchCursor(self.path, fieldslist, sql_clause=self._order_by_clause()))
+            df = pandas.DataFrame(rows, columns=fieldslist)
+            if len(fieldslist) == 1:
+                df = df.dropna(subset=fieldslist)
+            else:
+                df = df.dropna(subset=fieldslist, how='all')
+            count = df.groupby(fieldslist, dropna=False).size().reset_index(name='count')
+            return count[count['count'] >= threshold]
 
-            if len(fieldslist) != 1:
-                raise ValueError("field must be a single field when output='set'")
+        if len(fieldslist) != 1:
+            raise ValueError("field must be a single field when output='set'")
 
-            dup_set = set()  # set to hold duplicate values
-            value_count = {}  # dictionary to hold value counts
-            with arcpy.da.SearchCursor(self.path, fieldslist[0], sql_clause=self._order_by_clause()) as values:
-                for value in values:
-                    val = value[0]
-                    if val is not None: # ignore Null values
-                        value_count[val] = value_count.get(val, 0) + 1
-            for value in value_count:
-                if value_count[value] >= threshold:
-                    dup_set.add(value)
-            return dup_set
-
-        except arcpy.ExecuteError:
-            arc_msg = arcpy.GetMessages(2)
-            output_msg(arc_msg)
-            raise RuntimeError(arc_msg)
-        except Exception as e:
-            err_msg = str(e)
-            output_msg(err_msg)
-            raise
+        dup_set = set()  # set to hold duplicate values
+        value_count = {}  # dictionary to hold value counts
+        with arcpy.da.SearchCursor(self.path, fieldslist[0], sql_clause=self._order_by_clause()) as values:
+            for value in values:
+                val = value[0]
+                if val is not None: # ignore Null values
+                    value_count[val] = value_count.get(val, 0) + 1
+        for value in value_count:
+            if value_count[value] >= threshold:
+                dup_set.add(value)
+        return dup_set
 
     def find_duplicate_field_values_as_df(self, fields, threshold=2):
         """Return duplicate values as a Pandas DataFrame.
@@ -315,42 +299,35 @@ class TableObj(object):
 
         output_msg("Processing: {}".format(self.path))
 
-        try:
-            fc_type = self.type
+        report_dir = get_valid_output_path(path)
+        if not report_dir:
+            raise ValueError("invalid output path")
+        out_file_name = self.name + "_Field_Report " + start_date_string + ".csv"
+        out_file_path = os.path.join(report_dir, out_file_name)
+        output_msg("Report file: {0}".format(out_file_path))
+        with open(out_file_path, "w") as logFile:
+            logFile.write(
+                "FieldName,FieldType,FieldPrecision,FieldScale,FieldLength,FieldAlias,isNullable,Required,"
+                "FieldDomain,DefaultValue,Editable,BaseName\n")
 
-            report_dir = get_valid_output_path(path)
-            if not report_dir:
-                raise ValueError("invalid output path")
-            out_file_name = self.name + "_Field_Report " + start_date_string + ".csv"
-            out_file_path = os.path.join(report_dir, out_file_name)
-            output_msg("Report file: {0}".format(out_file_path))
-            with open(out_file_path, "w") as logFile:
-                #logFile.write("Type,{}\n".format(fc_type))
-                logFile.write(
-                    "FieldName,FieldType,FieldPrecision,FieldScale,FieldLength,FieldAlias,isNullable,Required,"
-                    "FieldDomain,DefaultValue,Editable,BaseName\n")
+            for field in self.field_dict:
+                output_msg("Writing {}".format(field))
+                logFile.write("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11}\n".format(
+                    self.field_dict[field]['name'],
+                    type_conversions[self.field_dict[field]['type']],
+                    self.field_dict[field]['precision'],
+                    self.field_dict[field]['scale'],
+                    self.field_dict[field]['length'],
+                    self.field_dict[field]['aliasName'],
+                    self.field_dict[field]['isNullable'],
+                    self.field_dict[field]['required'],
+                    self.field_dict[field]['domain'],
+                    self.field_dict[field]['defaultValue'],
+                    self.field_dict[field]['editable'],
+                    self.field_dict[field]['baseName'])
+                )
 
-                for field in self.field_dict:
-                    output_msg("Writing {}".format(field))
-                    logFile.write("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11}\n".format(
-                        self.field_dict[field]['name'],
-                        type_conversions[self.field_dict[field]['type']],
-                        self.field_dict[field]['precision'],
-                        self.field_dict[field]['scale'],
-                        self.field_dict[field]['length'],
-                        self.field_dict[field]['aliasName'],
-                        self.field_dict[field]['isNullable'],
-                        self.field_dict[field]['required'],
-                        self.field_dict[field]['domain'],
-                        self.field_dict[field]['defaultValue'],
-                        self.field_dict[field]['editable'],
-                        self.field_dict[field]['baseName'])
-                    )
-
-            return out_file_path
-        except Exception as e:
-            output_msg("error: " + str(e.args[0]))
-            output_msg(arcpy.GetMessages())
+        return out_file_path
 
     def compare_field_values_to_domain(self, field, gdb, domain_name):
         """compare field values with domain values

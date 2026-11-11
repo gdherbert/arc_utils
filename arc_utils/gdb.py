@@ -145,43 +145,28 @@ def report_all_fc_as_text(geodatabase, output_file=None, sep='\t'):
             logFile.write(header_output + "\n")
             for tbl in arcpy.ListTables():
                 output_msg("Processing Table: {0}".format(tbl))
-                try:
-                    fields = arcpy.ListFields(tbl)
+                fields = arcpy.ListFields(tbl)
+                str_output = ""
+                line_start = "{0}{1}{2}{1}".format("", sep, tbl)
+                for field in fields:
+                    str_output += line_start + sep.join(["{}".format(getattr(field, i)) for i in atts])
+                    str_output += "\n"
+                logFile.write(str_output)
+
+            for dataset in datasets:
+                for fc in arcpy.ListFeatureClasses(feature_dataset=dataset):
+                    output_msg("Processing Dataset: {0} \\ FeatureClass: {1}".format(dataset, fc))
+                    fields = arcpy.ListFields(fc)
                     str_output = ""
-                    line_start = "{0}{1}{2}{1}".format("", sep, tbl)
+                    line_start = "{0}{1}{2}{1}".format(dataset, sep, fc)
                     for field in fields:
                         str_output += line_start + sep.join(["{}".format(getattr(field, i)) for i in atts])
                         str_output += "\n"
                     logFile.write(str_output)
 
-                except Exception as e:
-                    output_msg(str(e.args[0]))
-                    output_msg(arcpy.GetMessages())
-                    continue
-
-            for dataset in datasets:
-                for fc in arcpy.ListFeatureClasses(feature_dataset=dataset):
-                    output_msg("Processing Dataset: {0} \\ FeatureClass: {1}".format(dataset, fc))
-                    try:
-                        fields = arcpy.ListFields(fc)
-                        str_output = ""
-                        line_start = "{0}{1}{2}{1}".format(dataset, sep, fc)
-                        for field in fields:
-                            str_output += line_start + sep.join(["{}".format(getattr(field, i)) for i in atts])
-                            str_output += "\n"
-                        logFile.write(str_output)
-
-                    except Exception as e:
-                        output_msg(str(e.args[0]))
-                        output_msg(arcpy.GetMessages())
-                        continue
-
-    except Exception as e:
-        output_msg(str(e.args[0]))
-        output_msg(arcpy.GetMessages())
     finally:
         arcpy.env.workspace = default_env
-        output_msg("Completed")
+    output_msg("Completed")
 
 
 def export_all_domains(geodatabase, workspace=None):
@@ -194,26 +179,20 @@ def export_all_domains(geodatabase, workspace=None):
     :param workspace {String|pathlike|object}: Optional
         Path to output folder or geodatabase. Defaults to input geodatabase.
     """
-    try:
-        geodatabase = _ensure_valid_path(_resolve_dataset_path(geodatabase, arg_name="geodatabase"))
-        if not workspace:
-            workspace = geodatabase
-        else:
-            workspace = _resolve_dataset_path(workspace, arg_name="workspace")
-        domains = arcpy.da.ListDomains(geodatabase)
-        for domain in domains:
-            dname = arcpy.ValidateTableName(domain.name + '_domain', workspace)
-            output = os.path.join(workspace, dname)
-            if workspace != geodatabase:
-                output += '.txt'
-            output_msg('Exporting {0} domain to {1}'.format(domain.name, dname))
-            arcpy.DomainToTable_management(geodatabase, domain.name, output, "codedValues", 'description')
-
-    except Exception as e:
-        output_msg(str(e.args[0]))
-        output_msg(arcpy.GetMessages())
-    finally:
-        output_msg("Completed")
+    geodatabase = _ensure_valid_path(_resolve_dataset_path(geodatabase, arg_name="geodatabase"))
+    if not workspace:
+        workspace = geodatabase
+    else:
+        workspace = _resolve_dataset_path(workspace, arg_name="workspace")
+    domains = arcpy.da.ListDomains(geodatabase)
+    for domain in domains:
+        dname = arcpy.ValidateTableName(domain.name + '_domain', workspace)
+        output = os.path.join(workspace, dname)
+        if workspace != geodatabase:
+            output += '.txt'
+        output_msg('Exporting {0} domain to {1}'.format(domain.name, dname))
+        arcpy.DomainToTable_management(geodatabase, domain.name, output, "codedValues", 'description')
+    output_msg("Completed")
 
 
 def import_tables_as_domains(tables, geodatabase):
@@ -229,15 +208,10 @@ def import_tables_as_domains(tables, geodatabase):
         Single string inputs are treated as a single table path (not iterated per character).
         Invalid paths raise ValueError("invalid path").
     """
-    try:
-        geodatabase = _ensure_valid_path(_resolve_dataset_path(geodatabase, arg_name="geodatabase"))
-        for table in _normalize_to_sequence(tables):
-            table = _ensure_valid_path(_resolve_dataset_path(table, arg_name="tables"))
-            desc = arcpy.Describe(table)
-            dname = desc.name.replace("_domain", "")
-            arcpy.TableToDomain_management(table, "codedValues", "description", geodatabase, dname)
-    except Exception as e:
-        output_msg(str(e.args[0]))
-        output_msg(arcpy.GetMessages())
-    finally:
-        output_msg("Completed")
+    geodatabase = _ensure_valid_path(_resolve_dataset_path(geodatabase, arg_name="geodatabase"))
+    for table in _normalize_to_sequence(tables):
+        table = _ensure_valid_path(_resolve_dataset_path(table, arg_name="tables"))
+        desc = arcpy.Describe(table)
+        dname = desc.name.replace("_domain", "")
+        arcpy.TableToDomain_management(table, "codedValues", "description", geodatabase, dname)
+    output_msg("Completed")

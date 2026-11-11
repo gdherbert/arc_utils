@@ -3,7 +3,7 @@
 """
 
 import arcpy
-import os
+from ._inputs import _ensure_valid_path
 from ._inputs import _resolve_aprx_path
 
 class AprxObj(object):
@@ -22,8 +22,8 @@ class AprxObj(object):
         """ :param path to aprx or "CURRENT"
         """
         self.path = _resolve_aprx_path(aprx_path, arg_name="aprx_path")
-        if self.path != "CURRENT" and not os.path.exists(self.path):
-            raise ValueError("invalid path")
+        if self.path != "CURRENT":
+            self.path = _ensure_valid_path(self.path)
         self.aprx = arcpy.mp.ArcGISProject(self.path)
         self.maps = self.get_maps()
         self.layouts = self.get_layouts()
@@ -98,6 +98,5 @@ class AprxObj(object):
 # (.maps, .layouts, etc.) in the ArcGIS Pro Python window; None outside Pro
 try:
     current = AprxObj("CURRENT")
-except Exception:
+except arcpy.ExecuteError:
     current = None
-
