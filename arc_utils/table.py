@@ -489,13 +489,31 @@ def compare_schema(fc1, fc2, ignore_fields=None, compare_values=False):
                 output_msg(the_result)
                 result_arr.append(the_result)
             else:
-                the_result = "Field Mismatch {}: ({}, {}) ".format(
+                the_result = "Field Mismatch {}: ({}, {}) - ".format(
                     ifield, src1, src2)
                 for k in field_dict1[ifield]:
                     if field_dict1[ifield][k] != field_dict2[ifield][k]:
-                        the_result += '{}: ({}, {}) '.format(k, field_dict1[ifield][k], field_dict2[ifield][k])
+                        the_result += '{}: ({} vs {}) '.format(k, field_dict1[ifield][k], field_dict2[ifield][k])
                 output_msg(the_result)
                 result_arr.append(the_result)
+
+            if compare_values and ifield.lower() not in ignore_set: # both exist
+                values1 = fcobj1.get_field_value_set(ifield)
+                values2 = fcobj2.get_field_value_set(ifield)
+                common_values = sorted(values1 & values2)
+                left_only = sorted(values1 - values2)
+                right_only = sorted(values2 - values1)
+
+                common = f'{ifield} Common values: {common_values}' if common_values else f'{ifield} No common values'
+                left = f'{ifield} {src1} only: {left_only}' if left_only else f'{ifield} No unique values only in {src1}'
+                right = f'{ifield} {src2} only: {right_only}' if right_only else f'{ifield} No unique values only in {src2}'
+
+                output_msg(common)
+                result_arr.append(common)
+                output_msg(left)
+                result_arr.append(left)
+                output_msg(right)
+                result_arr.append(right)
 
     return result_arr
 
