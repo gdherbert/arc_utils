@@ -87,6 +87,40 @@ def test_tableobj_invalid_path_raises_valueerror():
         table.TableObj("invalidpath")
 
 
+def test_get_field_value_set_reraises_cursor_errors(monkeypatch, testdatabase):
+    tbl = table.TableObj(testdatabase.fc1)
+    error = RuntimeError("cursor failed")
+    monkeypatch.setattr(table.arcpy.da, "SearchCursor", lambda *args, **kwargs: (_ for _ in ()).throw(error))
+
+    with pytest.raises(RuntimeError) as raised:
+        tbl.get_field_value_set("ftext")
+
+    assert raised.value is error
+
+
+def test_find_duplicate_field_values_reraises_cursor_errors(monkeypatch, testdatabase):
+    tbl = table.TableObj(testdatabase.fc1)
+    error = RuntimeError("cursor failed")
+    monkeypatch.setattr(table.arcpy.da, "SearchCursor", lambda *args, **kwargs: (_ for _ in ()).throw(error))
+
+    with pytest.raises(RuntimeError) as raised:
+        tbl.find_duplicate_field_values("ftext")
+
+    assert raised.value is error
+
+
+def test_export_schema_to_csv_reraises_file_errors(monkeypatch, testdatabase):
+    tbl = table.TableObj(testdatabase.fc1)
+    error = OSError("file write failed")
+    monkeypatch.setattr(table, "get_valid_output_path", lambda path: str(testdatabase.gdb))
+    monkeypatch.setattr("builtins.open", lambda *args, **kwargs: (_ for _ in ()).throw(error))
+
+    with pytest.raises(OSError) as raised:
+        tbl.export_schema_to_csv(testdatabase.gdb)
+
+    assert raised.value is error
+
+
 def test_export_fields_to_worksheet(testdatabase):
     from openpyxl import Workbook
     tbl = table.TableObj(testdatabase.fc1)
