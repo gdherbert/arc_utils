@@ -137,6 +137,28 @@ def test_export_fields_to_worksheet(testdatabase):
     assert "ftext" in row_values
     assert "fint" in row_values
 
+
+def test_export_fields_to_worksheet_ignore_fields_options(testdatabase):
+    from openpyxl import Workbook
+
+    tbl = table.TableObj(testdatabase.fc1)
+    tbl.ignore_fields = ["ftext"]
+
+    default_ws = Workbook().active
+    tbl.export_fields_to_worksheet(default_ws)
+    assert default_ws["A2"].value == "fint"
+    assert default_ws["A3"].value is None
+
+    provided_ws = Workbook().active
+    tbl.export_fields_to_worksheet(provided_ws, ignore_fields=["fint"])
+    assert provided_ws["A2"].value == "ftext"
+    assert provided_ws["A3"].value is None
+
+    empty_ws = Workbook().active
+    tbl.export_fields_to_worksheet(empty_ws, ignore_fields=[])
+    assert {empty_ws["A2"].value, empty_ws["A3"].value} == {"ftext", "fint"}
+
+
 def test_pretty_print_fields(testdatabase, capsys):
     tbl = table.TableObj(testdatabase.fc1)
     tbl.pretty_print_fields()
@@ -160,6 +182,25 @@ def test_export_field_sets_accepts_pathlike_and_wrapper_inputs(testdatabase, tmp
     ]
     table.export_field_sets(inputs, str(out_xlsx))
     assert out_xlsx.exists()
+
+
+def test_export_field_sets_ignore_fields_options(testdatabase, tmp_path):
+    from openpyxl import load_workbook
+
+    def exported_fields(ignore_fields, filename):
+        output_path = tmp_path / filename
+        table.export_field_sets(testdatabase.fc1, str(output_path), ignore_fields=ignore_fields)
+        workbook = load_workbook(output_path, read_only=True)
+        try:
+            worksheet = workbook.active
+            return [worksheet.cell(row=row, column=1).value for row in range(2, worksheet.max_row + 1)]
+        finally:
+            workbook.close()
+
+    assert set(exported_fields(None, "default.xlsx")) == {"ftext", "fint"}
+    assert exported_fields(["ftext"], "provided.xlsx") == ["fint"]
+    assert set(exported_fields([], "empty.xlsx")) == {"ftext", "fint"}
+
 
 def test_find_duplicate_field_values_set_output(testdatabase):
     tbl = table.TableObj(testdatabase.fc1)
