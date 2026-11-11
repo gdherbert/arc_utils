@@ -40,14 +40,16 @@ class GDBObj(object):
         """ return a list of all the featureclasses as objects"""
         fc_list = []
         temp_ws = arcpy.env.workspace
-        arcpy.env.workspace = self.path
-        datasets = arcpy.ListDatasets(feature_type='feature')
-        datasets = [''] + datasets if datasets is not None else []
-        for dataset in datasets:
-            for fc in arcpy.ListFeatureClasses(feature_dataset=dataset):
-                #fc_list.append(TableObj(os.path.join(self.path, dataset, fc)))
-                fc_list.append(TableObj(os.path.join(self.path, fc)))
-        arcpy.env.workspace = temp_ws
+        try:
+            arcpy.env.workspace = self.path
+            # list all the feature datasets and feature classes within them
+            datasets = arcpy.ListDatasets(feature_type='feature')
+            datasets = [''] + datasets if datasets is not None else []
+            for dataset in datasets:
+                for fc in arcpy.ListFeatureClasses(feature_dataset=dataset):
+                    fc_list.append(TableObj(os.path.join(self.path, fc)))
+        finally:
+            arcpy.env.workspace = temp_ws
         return fc_list
 
     def get_feature_class_names(self):
@@ -67,11 +69,13 @@ class GDBObj(object):
         """ get a list of all the tables as objects"""
         tbl_list = []
         temp_ws = arcpy.env.workspace
-        arcpy.env.workspace = self.path
-        tbls = arcpy.ListTables()
-        for tbl in tbls:
-            tbl_list.append(TableObj(os.path.join(self.path, tbl)))
-        arcpy.env.workspace = temp_ws
+        try:
+            arcpy.env.workspace = self.path
+            tbls = arcpy.ListTables()
+            for tbl in tbls:
+                tbl_list.append(TableObj(os.path.join(self.path, tbl)))
+        finally:
+            arcpy.env.workspace = temp_ws
         return tbl_list
 
     def get_table_names(self):
