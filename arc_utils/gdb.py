@@ -55,14 +55,8 @@ class GDBObj(object):
     def get_feature_class_names(self):
         """ get a list of all the featureclass names"""
         fc_list = []
-        temp_ws = arcpy.env.workspace
-        arcpy.env.workspace = self.path
-        datasets = arcpy.ListDatasets(feature_type='feature')
-        datasets = [''] + datasets if datasets is not None else []
-        for dataset in datasets:
-            for fc in arcpy.ListFeatureClasses(feature_dataset=dataset):
-                fc_list.append(fc)
-        arcpy.env.workspace = temp_ws
+        for fc in self.feature_class_objs:
+                fc_list.append(fc.name)
         return fc_list
         
     def get_table_objs(self):
@@ -81,12 +75,8 @@ class GDBObj(object):
     def get_table_names(self):
         """ get a list of all the table names"""
         tbl_list = []
-        temp_ws = arcpy.env.workspace
-        arcpy.env.workspace = self.path
-        tbls = arcpy.ListTables()
-        for tbl in tbls:
-            tbl_list.append(tbl)
-        arcpy.env.workspace = temp_ws
+        for tbl in self.table_objs:
+            tbl_list.append(tbl.name)
         return tbl_list
 
     def get_all_domain_names(self):
@@ -97,15 +87,15 @@ class GDBObj(object):
         return domain_names
 
     def OID_check(self):
-        for fc in self.feature_class_paths:
+        for fc in self.feature_class_objs:
             oidfield = ''
-            tmp = arcpy.Describe(fc)
+            tmp = arcpy.Describe(fc.path)
             if tmp.hasOID:
                 oidfield = tmp.OIDFieldName
             print('featureclass', tmp.name, tmp.hasOID, oidfield)
-        for tb in self.tables:
+        for tb in self.table_objs:
             oidfield = ''
-            tmp = arcpy.Describe(tb)
+            tmp = arcpy.Describe(tb.path)
             if tmp.hasOID:
                 oidfield = tmp.OIDFieldName
             print('table', tmp.name, tmp.hasOID, oidfield)
