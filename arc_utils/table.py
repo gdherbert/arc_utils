@@ -474,7 +474,11 @@ def compare_schema(fc1, fc2, ignore_fields=None, compare_values=False):
     field_dict2 = fcobj2.field_dict
     for ifield in sorted(set(list(field_dict1.keys()) + list(field_dict2.keys()))):
         # check name for missing fields first
-        if not ifield in field_dict1:
+        if ifield.lower() in ignore_set:
+            the_result = f"Skipping ignored field: {ifield}"
+            output_msg(the_result)
+            result_arr.append(the_result)
+        elif not ifield in field_dict1:
             the_result = "{0} not found in {1}".format(ifield, src1)
             output_msg(the_result)
             result_arr.append(the_result)
