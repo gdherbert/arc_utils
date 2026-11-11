@@ -501,7 +501,7 @@ def compare_schema(fc1, fc2, ignore_fields=None, compare_values=False):
                 output_msg(the_result)
                 result_arr.append(the_result)
 
-            if compare_values and ifield.lower() not in ignore_set: # both exist
+            if compare_values: # both exist
                 values1 = fcobj1.get_field_value_set(ifield)
                 values2 = fcobj2.get_field_value_set(ifield)
                 common_values = sorted(values1 & values2)
