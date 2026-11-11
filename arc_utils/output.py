@@ -26,18 +26,15 @@ def output_msg(msg, severity=0):
 
     # Split the message on \n first, so that if it's multiple lines,
     #  a GPMessage will be added for each line
-    try:
-        for string in msg.split('\n'):
-            # Add appropriate geoprocessing message
-            #
-            if severity == 0:
-                arcpy.AddMessage(string)
-            elif severity == 1:
-                arcpy.AddWarning(string)
-            elif severity == 2:
-                arcpy.AddError(string)
-    except:
-        pass
+    for string in msg.split('\n'):
+        # Add appropriate geoprocessing message
+        #
+        if severity == 0:
+            arcpy.AddMessage(string)
+        elif severity == 1:
+            arcpy.AddWarning(string)
+        elif severity == 2:
+            arcpy.AddError(string)
 
 
 def get_valid_output_path(path, return_folder_only=True, make_dir=True, fallback_to_user_folder=True):
@@ -84,7 +81,7 @@ def get_valid_output_path(path, return_folder_only=True, make_dir=True, fallback
         if return_folder_only and path.lower().endswith('.gdb'):
             try:
                 report_dir = arcpy.Describe(path).Path
-            except Exception:
+            except (arcpy.ExecuteError, OSError):
                 return _fallback_user_folder()
     elif make_dir:
         try:

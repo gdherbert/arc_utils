@@ -50,8 +50,9 @@ def _resolve_dataset_path(value, arg_name="value"):
             if hasattr(desc, "catalogPath") and desc.catalogPath:
                 catalog_path = desc.catalogPath
                 return catalog_path if _is_service_url(catalog_path) else os.path.abspath(catalog_path)
-        except arcpy.ExecuteError:
-            pass
+        except (arcpy.ExecuteError, OSError):
+            if arcpy.Exists(candidate):
+                raise
         return candidate if _is_service_url(candidate) else os.path.abspath(candidate)
 
     for attr in ("path", "catalogPath", "dataSource"):

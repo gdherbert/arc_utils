@@ -98,5 +98,5 @@ class AprxObj(object):
 # (.maps, .layouts, etc.) in the ArcGIS Pro Python window; None outside Pro
 try:
     current = AprxObj("CURRENT")
-except arcpy.ExecuteError:
+except (arcpy.ExecuteError, OSError):
     current = None
