@@ -170,15 +170,15 @@ class TableObj(object):
 
     def export_fields_to_worksheet(self, worksheet, ignore_fields=None):
         """Write this table's field unique values to an openpyxl worksheet.
-        If ignore_fields is None, use this object's default ignore_fields.
-        Pass an empty list to ignore no fields, or a list with field names to ignore.
         :param worksheet: an openpyxl worksheet object to write to
-        :param ignore_fields: a list of field names to ignore
+        :param ignore_fields: fields to ignore; 
+            If ignore_fields is None, use the table object's default ignore_fields.
+            Pass an empty list to ignore no fields, or a list with field names to ignore.
         """
         if ignore_fields is None:
             ignore_fields = self.ignore_fields
-
-        ignore_set = {v.lower() for v in ignore_fields}
+        else:
+            ignore_set = {v.lower() for v in ignore_fields}
 
         worksheet["A1"] = "Field"
         worksheet["B1"] = "Values"
@@ -404,7 +404,9 @@ def export_field_sets(fc_list, out_xlsx, ignore_fields=None, use_lyr_alias=True)
     """Export unique field values for each layer in a list to an Excel file with one sheet per layer.
     :param fc_list: list (or single input) of feature class/table paths, path-like values, or objects with .path/.catalogPath/.dataSource
     :param out_xlsx: path to output Excel file
-    :param ignore_fields: fields to ignore; None uses each table's default ignore_fields, [] ignores no fields, or pass a custom list
+    :param ignore_fields: fields to ignore; 
+        If ignore_fields is None, use the table object's default ignore_fields.
+        Pass an empty list to ignore no fields, or a list with field names to ignore.
     :param use_lyr_alias:
         If True, worksheet names prefer object name/alias (human-readable).
         If False, worksheet names use table path (traceable/debug-friendly).
@@ -449,8 +451,9 @@ def compare_schema(fc1, fc2, ignore_fields=None, compare_values=False):
         Path or reference to feature class or table.
     :param fc2 {String|pathlike|TableObj|layer object}:
         Path or reference to feature class or table.
-    :param ignore_fields: fields to skip when compare_values is True; None uses both input tables'
-        default ignore_fields, [] skips none, or provide a custom list.
+    :param ignore_fields: fields to skip when compare_values is True; 
+        If ignore_fields is None, use the table object's default ignore_fields.
+        Pass an empty list to ignore no fields, or a list with field names to ignore.
     :param compare_values {bool}:
         If True, compare set of field values as well.
     :return array of results (field not found, field same, etc)
