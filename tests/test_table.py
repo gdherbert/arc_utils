@@ -29,7 +29,7 @@ def test_tableobj_single_text_field_methods(testdatabase):
     tbl = table.TableObj(testdatabase.fc1)
     ftext_set = tbl.get_field_value_set('ftext')
     assert isinstance(ftext_set, set)
-    assert sorted(ftext_set) == [u'NULL', 'val02', 'val1', 'val2']
+    assert ftext_set == {None, 'val02', 'val1', 'val2'}
     assert tbl.get_max_field_value('ftext') == 'val2'
     assert tbl.get_max_field_value('ftext', lengthcomp=True) == 'val02'
     assert tbl.get_max_field_value_length('ftext') == 5
@@ -40,7 +40,7 @@ def test_tableobj_single_integer_field_methods(testdatabase):
     tbl = table.TableObj(testdatabase.fc1)
     fint_set = tbl.get_field_value_set('fint')
     assert isinstance(fint_set, set)
-    assert tbl.get_field_value_set('fint') == set([4, 5, 7, 10, u'NULL'])
+    assert tbl.get_field_value_set('fint') == {4, 5, 7, 10, None}
     assert tbl.get_max_field_value('fint') == 10
     assert tbl.get_max_field_value_length('fint') == 2
 
@@ -50,35 +50,62 @@ def test_tableobj_multi_field_methods(testdatabase):
     tbl = table.TableObj(testdatabase.fc1)
     multi_field = tbl.get_multiple_field_value_set(['ftext', 'fint'])
     assert isinstance(multi_field, set)
-    assert sorted(multi_field) == [u'<Null>:5', u'val02:7', u'val1:10', u'val1:4', u'val1:<Null>', u'val2:5', u'val2:7']
-   
+    assert multi_field == { 
+        (None, 5),
+        ('val02', 7),
+        ('val1', 4),
+        ('val1', 10),
+        ('val1', None),
+        ('val2', 5),
+        ('val2', 7)
+    }
     
 
-def test_tableobj_compare_methods(testdatabase):
+def test_tableobj_compare_int_domain(testdatabase):
     # test table object compare methods
     tbl = table.TableObj(testdatabase.fc1)
     result = tbl.compare_field_values_to_domain('fint', testdatabase.gdb, "fint_range")
-    result.match.sort()
-    assert result.match == [4, 5, 7, 10]
-    assert result.unmatched == []
+    assert set(result.match) == {4, 5, 7, 10}
+    assert set(result.unmatched) == set()
+    assert None not in result.match
+    assert None not in result.unmatched
 
+
+def test_tableobj_compare_text_domain(testdatabase):
+    # test table object compare methods
+    tbl = table.TableObj(testdatabase.fc1)
     result = tbl.compare_field_values_to_domain('ftext', testdatabase.gdb, "ftext_coded")
-    result.match.sort()
-    result.unmatched.sort()
-    assert result.match == ['val1', 'val2']
-    assert result.unmatched == ['NULL', 'val02']
+    assert set(result.match) == {'val1', 'val2'}
+    assert set(result.unmatched) == {'val02'}
+    assert None not in result.match
+    assert None not in result.unmatched
 
 
-def test_table_fc_methods(testdatabase):
-    # test non-object table methods
+def test_table_compare_schema_with_default_ignored_fields(testdatabase):
+    # default case ignores objectid and shape fields
     result = table.compare_schema(testdatabase.fc1, testdatabase.fc2)
+    expected_result = ["Skipping ignored field: OBJECTID","Skipping ignored field: Shape","fint field same in both","ftext field same in both"]
+    assert result == expected_result
+
+
+def test_table_compare_schema_with_empty_ignore_fields(testdatabase):
+    # test non-object table methods
+    result = table.compare_schema(testdatabase.fc1, testdatabase.fc2, ignore_fields=[])
     expected_result = ["OBJECTID field same in both","Shape field same in both","fint field same in both","ftext field same in both"]
     assert result == expected_result
 
 
+def test_compare_schema_skips_explicitly_ignored_fields(testdatabase):
+    result = table.compare_schema(testdatabase.fc1, testdatabase.fc2, ignore_fields=["ftext"])
+
+    assert "Skipping ignored field: ftext" in result
+    assert not any(result_item.startswith("ftext field") for result_item in result)
+    assert "fint field same in both" in result
+
+
 def test_table_fc_methods_with_pathlike_and_wrapper_inputs(testdatabase):
     result = table.compare_schema(pathlib.Path(testdatabase.fc1), table.TableObj(PathWrapper(testdatabase.fc2)))
-    expected_result = ["OBJECTID field same in both","Shape field same in both","fint field same in both","ftext field same in both"]
+    expected_result = ["Skipping ignored field: OBJECTID","Skipping ignored field: Shape","fint field same in both","ftext field same in both"]
     assert result == expected_result
 
 
@@ -144,19 +171,23 @@ def test_export_fields_to_worksheet_ignore_fields_options(testdatabase):
     tbl = table.TableObj(testdatabase.fc1)
     tbl.ignore_fields = ["ftext"]
 
+    # use default ignore
     default_ws = Workbook().active
     tbl.export_fields_to_worksheet(default_ws)
     assert default_ws["A2"].value == "fint"
     assert default_ws["A3"].value is None
 
+    # supply ignore_fields explicitly
     provided_ws = Workbook().active
     tbl.export_fields_to_worksheet(provided_ws, ignore_fields=["fint"])
     assert provided_ws["A2"].value == "ftext"
     assert provided_ws["A3"].value is None
 
+    # explicitly ignore no fields
     empty_ws = Workbook().active
     tbl.export_fields_to_worksheet(empty_ws, ignore_fields=[])
     assert {empty_ws["A2"].value, empty_ws["A3"].value} == {"ftext", "fint"}
+    assert empty_ws["A4"].value is None
 
 
 def test_pretty_print_fields(testdatabase, capsys):

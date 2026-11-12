@@ -153,19 +153,17 @@ class TableObj(object):
 
     def get_field_value_set(self, field):
         """Return set of unique field values
+           NULL values are kept as None
             :param field {String}:
                 name of the field to parse
-            :return set of unique values. Ignores NULL
+            :return set of unique values. 
            """
         if not arcpy.Exists(self.path):
             raise ValueError("invalid path")
         value_set = set()  # set to hold unique values
         with arcpy.da.SearchCursor(self.path, field, sql_clause=self._order_by_clause()) as values:
             for value in values:
-                if value[0] is None:
-                    continue
-                else:
-                    value_set.add(value[0])
+                value_set.add(value[0]) # include None
         return value_set
 
     def export_fields_to_worksheet(self, worksheet, ignore_fields=None):
@@ -176,7 +174,7 @@ class TableObj(object):
             Pass an empty list to ignore no fields, or a list with field names to ignore.
         """
         if ignore_fields is None:
-            ignore_fields = self.ignore_fields
+            ignore_set = set(self.ignore_fields)
         else:
             ignore_set = {v.lower() for v in ignore_fields}
 
@@ -189,20 +187,19 @@ class TableObj(object):
                 continue
             alias = self.field_dict.get(field_name, {}).get("aliasName") or field_name
             values = self.get_field_value_set(field_name)
-            values_text = ", ".join(sorted(str(v) for v in values))
+            values_text = ", ".join(sorted('<Null>' if v is None else str(v) for v in values))
             worksheet.cell(row=row, column=1, value=alias)
             worksheet.cell(row=row, column=2, value=values_text)
             row += 1
 
         return row
 
-    def get_multiple_field_value_set(self, fields, sep=':'):
+    def get_multiple_field_value_set(self, fields):
         """return a set of unique field values for an input table
-        and any number of fields (values will be concatenated with sep)
+        and any number of fields. Rows with all None/NULL values are dropped.
         :param fields {array of String values}:
             single field name or an array of field names (['Field1', 'Field2'])
-        :param sep {String}:
-            character to use as a separator (default = ':'
+        :return: set of unique tuples, preserving original values and NULL
         """
         if not isinstance(fields, list):
             fieldslist = [fields]
@@ -213,13 +210,17 @@ class TableObj(object):
         
         with arcpy.da.SearchCursor(self.path, fieldslist, sql_clause=self._order_by_clause()) as cursor:
             for row in cursor:
-                parts = [('<Null>' if v is None else str(v)) for v in row]
-                result.add(sep.join(parts))
+                if len(fieldslist) == 1 and row[0] is None:
+                    continue
+                if len(fieldslist) > 1 and all(v is None for v in row):
+                    continue
+                result.add(tuple(row))
 
         return set(result)
 
     def find_duplicate_field_values(self, field, threshold=2, charset='ascii', output='set'):
-        """Return duplicate values from one or more fields. Ignores Null
+        """Return duplicate values from one or more fields. 
+           Null values are skipped for a set. Dataframe keeps Null values unless all fields are NULL.
             :param field {String|[String]}:
                 field name (or list of field names when output='df')
             :param threshold {int}:
@@ -264,8 +265,8 @@ class TableObj(object):
                 val = value[0]
                 if val is not None: # ignore Null values
                     value_count[val] = value_count.get(val, 0) + 1
-        for value in value_count:
-            if value_count[value] >= threshold:
+        for value, count in value_count.items():
+            if count >= threshold:
                 dup_set.add(value)
         return dup_set
 
@@ -332,9 +333,10 @@ class TableObj(object):
 
     def compare_field_values_to_domain(self, field, gdb, domain_name):
         """compare field values with domain values
-            return a named tuple (matched = values in domain,
-            unmatched = values outside of domain
-            NULL is skipped
+            return a named tuple:
+               matched = values in domain,
+               unmatched = values outside of domain
+            NULL/None values are ignored
 
             :param field {string}
                 Field name
@@ -350,6 +352,7 @@ class TableObj(object):
         domain_type = None
         field_in_domain = []
         field_out_domain = []
+
         domains = arcpy.da.ListDomains(gdb)
         for domain in domains:
             if domain.name == domain_name:
@@ -363,23 +366,27 @@ class TableObj(object):
                     domain_values.append(domain.range[0])
                     domain_values.append(domain.range[1])
                 break
-        if domain_type == 'Range':
-            # compare upper and lower bounds
-            for fv in field_values:
-                if fv == 'NULL':
-                    continue
-                elif int(fv) < domain_values[0] or int(fv) > domain_values[1]:
+        
+        if domain_type is None:
+            raise ValueError(f"Domain '{domain_name}' not found in geodatabase '{gdb}'")
+        
+        for fv in field_values:
+            if fv is None:
+                continue
+            
+            if isinstance(fv, bytes):
+                fv = fv.decode()
+
+            if domain_type == 'Range':
+                if fv < domain_values[0] or fv > domain_values[1]:
                     field_out_domain.append(fv)
                 else:
                     field_in_domain.append(fv)
-        else:
-            for fv in field_values:
-                if type(fv) == bytes: # Python 3 catch as domain values are strings
-                    fv = fv.decode()
-                if fv in domain_values:
-                    field_in_domain.append(fv)
-                else:
-                    field_out_domain.append(fv)
+            
+            elif fv in domain_values:
+                field_in_domain.append(fv)
+            else:
+                field_out_domain.append(fv)
 
         return nt(field_in_domain, field_out_domain)
 
